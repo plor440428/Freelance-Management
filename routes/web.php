@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Livewire\TestComponent;
+use App\Http\Livewire\Auth\Register;
 
 Route::get('/', function () {
     return auth()->check()
@@ -13,6 +14,10 @@ Route::get('/test', TestComponent::class);
 
 Route::view('/login', 'auth.login')
     ->name('login')
+    ->middleware('guest');
+
+Route::get('/register', Register::class)
+    ->name('register')
     ->middleware('guest');
 
 Route::get('/dashboard', function () {

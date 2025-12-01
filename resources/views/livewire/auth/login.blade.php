@@ -1,5 +1,5 @@
 <div>
-    <div class="h-full bg-gray-50 rounded-xl flex items-center justify-center py-12 px-12 sm:px-6 lg:px-8">
+    <div class="h-full bg-gray-50 rounded-xl flex items-center justify-center py-0 px-0 sm:px-0 lg:px-0">
         <div class="max-w-6xl w-full bg-white rounded-lg shadow-md overflow-hidden grid grid-cols-1 md:grid-cols-2">
             <!-- Illustration / left column (hidden on small screens) -->
             <div class="hidden md:flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-700 p-8">
@@ -69,6 +69,13 @@
                             </button>
                         </div>
                     </form>
+
+                    <div class="text-center mt-6">
+                        <p class="text-sm text-gray-600">
+                            Don't have an account?
+                            <a href="{{ route('register') }}" class="font-medium text-black hover:underline">Sign up here</a>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
