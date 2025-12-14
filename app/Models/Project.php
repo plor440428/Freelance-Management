@@ -35,4 +35,9 @@ class Project extends Model
     {
         return $this->hasMany(Task::class);
     }
+
+    public function files()
+    {
+        return $this->morphMany(File::class, 'module', 'module_name', 'module_id');
+    }
 }

@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <div class="flex items-center gap-3">
-                <a wire:navigate href="/dashboard/projects" class="text-slate-600 hover:text-slate-800">
+                <a href="{{ route('dashboard.projects') }}" class="text-slate-600 hover:text-slate-800">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -43,13 +43,26 @@
                 <div>
                     <label class="text-sm font-medium text-slate-600">Status</label>
                     <div class="mt-1">
-                        <span class="px-3 py-1 rounded text-sm font-medium
-                            @if($project->status === 'active') bg-green-100 text-green-800
-                            @elseif($project->status === 'on_hold') bg-yellow-100 text-yellow-800
-                            @else bg-blue-100 text-blue-800
-                            @endif">
-                            {{ ucfirst(str_replace('_', ' ', $project->status)) }}
-                        </span>
+                        @if(auth()->user()->role === 'admin' || $project->created_by === auth()->id())
+                            <select wire:change="updateStatus($event.target.value)"
+                                class="px-3 py-1 rounded text-sm font-medium border-0 focus:ring-2 focus:ring-black cursor-pointer
+                                @if($project->status === 'active') bg-green-100 text-green-800
+                                @elseif($project->status === 'on_hold') bg-yellow-100 text-yellow-800
+                                @else bg-blue-100 text-blue-800
+                                @endif">
+                                <option value="active" @selected($project->status === 'active')>Active</option>
+                                <option value="on_hold" @selected($project->status === 'on_hold')>On Hold</option>
+                                <option value="completed" @selected($project->status === 'completed')>Completed</option>
+                            </select>
+                        @else
+                            <span class="px-3 py-1 rounded text-sm font-medium
+                                @if($project->status === 'active') bg-green-100 text-green-800
+                                @elseif($project->status === 'on_hold') bg-yellow-100 text-yellow-800
+                                @else bg-blue-100 text-blue-800
+                                @endif">
+                                {{ ucfirst(str_replace('_', ' ', $project->status)) }}
+                            </span>
+                        @endif
                     </div>
                 </div>
 
@@ -120,6 +133,53 @@
                         <span class="font-semibold text-slate-600">{{ $project->tasks->where('status', 'todo')->count() }}</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- Project Files -->
+            <div class="bg-white rounded shadow p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-semibold">Files ({{ $project->files->count() }}/5)</h4>
+                    @if(auth()->user()->role === 'admin' || $project->created_by === auth()->id())
+                        @if($project->files->count() < 5)
+                            <button wire:click="openUploadFiles" class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Upload
+                            </button>
+                        @endif
+                    @endif
+                </div>
+                @if($project->files->count() > 0)
+                    <div class="space-y-2">
+                        @foreach($project->files as $file)
+                            <div class="flex items-center justify-between p-2 bg-slate-50 rounded hover:bg-slate-100 transition">
+                                <a href="{{ $file->url }}" target="_blank" class="flex items-center gap-2 flex-1 min-w-0">
+                                    <svg class="w-5 h-5 text-slate-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        @if(in_array($file->file_type, ['jpg', 'jpeg', 'png', 'gif', 'webp']))
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        @else
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        @endif
+                                    </svg>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-slate-900 truncate">{{ $file->file_name }}</p>
+                                        <p class="text-xs text-slate-500">{{ number_format($file->file_size / 1024, 2) }} KB</p>
+                                    </div>
+                                </a>
+                                @if(auth()->user()->role === 'admin' || $project->created_by === auth()->id())
+                                    <button wire:click="confirmDeleteFile({{ $file->id }})" class="text-red-600 hover:text-red-800 p-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-sm text-slate-500">No files uploaded</p>
+                @endif
             </div>
         </div>
     </div>
@@ -423,6 +483,99 @@
                     <div class="mt-3 flex gap-2">
                         <button wire:click="deleteTask" class="px-3 py-2 bg-red-600 text-white rounded">Yes, delete</button>
                         <button wire:click="$set('confirmingDeleteTaskId', null)" class="px-3 py-2 border rounded">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Upload Files Modal -->
+    @if($showUploadFilesModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center">
+            <div class="absolute inset-0 bg-black opacity-40" wire:click="$set('showUploadFilesModal', false)"></div>
+            <div class="relative bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 overflow-hidden">
+                <div class="flex items-center justify-between p-4 border-b">
+                    <h3 class="text-lg font-semibold">Upload Files (Max {{ 5 - $project->files->count() }} files)</h3>
+                    <button wire:click="$set('showUploadFilesModal', false)" class="text-slate-600 hover:text-slate-800">&times;</button>
+                </div>
+
+                <div class="p-6">
+                    <form wire:submit.prevent="uploadFiles" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select Files (Multiple files allowed)</label>
+                            <input type="file" wire:model="uploadedFiles" multiple
+                                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
+                                class="block w-full text-sm text-slate-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-slate-100 file:text-slate-700
+                                hover:file:bg-slate-200 cursor-pointer" />
+                            <p class="mt-1 text-xs text-slate-500">You can select multiple files at once. Maximum 10MB per file. Images, PDFs, Documents supported.</p>
+                            @error('uploadedFiles') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+                            @error('uploadedFiles.*') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div wire:loading wire:target="uploadedFiles" class="text-sm text-blue-600 flex items-center gap-2">
+                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Preparing files...
+                        </div>
+
+                        @if(!empty($uploadedFiles) && is_array($uploadedFiles))
+                            <div class="border rounded p-3 bg-slate-50">
+                                <p class="text-sm font-medium mb-2">Selected Files ({{ count($uploadedFiles) }}):</p>
+                                <ul class="text-sm text-slate-700 space-y-1">
+                                    @foreach($uploadedFiles as $index => $file)
+                                        @if(is_object($file))
+                                            <li class="flex items-center gap-2">
+                                                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                <span class="flex-1">{{ $file->getClientOriginalName() }}</span>
+                                                <span class="text-xs text-slate-500">({{ number_format($file->getSize() / 1024, 2) }} KB)</span>
+                                            </li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <div class="flex gap-3 pt-4 border-t">
+                            <button type="submit"
+                                class="flex-1 px-4 py-2 bg-black text-white rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                wire:loading.attr="disabled"
+                                wire:target="uploadFiles,uploadedFiles"
+                                @disabled(!$uploadedFiles)>
+                                <span wire:loading.remove wire:target="uploadFiles">Upload Files</span>
+                                <span wire:loading wire:target="uploadFiles" class="flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Uploading...
+                                </span>
+                            </button>
+                            <button type="button" wire:click="$set('showUploadFilesModal', false)" class="flex-1 px-4 py-2 border rounded">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Delete File Confirmation -->
+    @if($confirmingDeleteFileId)
+        <div class="fixed inset-0 z-50 flex items-center justify-center">
+            <div class="absolute inset-0 bg-black opacity-40" wire:click="$set('confirmingDeleteFileId', null)"></div>
+            <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 overflow-hidden">
+                <div class="p-4">
+                    <p class="text-sm text-red-800">Are you sure you want to delete this file? This cannot be undone.</p>
+                    <div class="mt-3 flex gap-2">
+                        <button wire:click="deleteFile" class="px-3 py-2 bg-red-600 text-white rounded">Yes, delete</button>
+                        <button wire:click="$set('confirmingDeleteFileId', null)" class="px-3 py-2 border rounded">Cancel</button>
                     </div>
                 </div>
             </div>

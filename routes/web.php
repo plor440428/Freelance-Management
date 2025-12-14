@@ -25,6 +25,10 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware('auth')->name('dashboard');
 
+Route::view('/dashboard/projects', 'dashboard')
+    ->middleware('auth')
+    ->name('dashboard.projects');
+
 Route::get('/dashboard/projects/{id}', ProjectDetail::class)
     ->middleware('auth')
     ->name('dashboard.projects.detail');

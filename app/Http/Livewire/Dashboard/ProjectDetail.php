@@ -3,26 +3,36 @@
 namespace App\Http\Livewire\Dashboard;
 
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Models\File;
 
 class ProjectDetail extends Component
 {
+    use WithFileUploads;
+
     public $projectId;
     public $project;
 
     public $showEditModal = false;
     public $showEditCustomersModal = false;
+    public $showUploadFilesModal = false;
     public $confirmingDeleteId = null;
     public $confirmingDeleteTaskId = null;
+    public $confirmingDeleteFileId = null;
 
     // Project form fields
     public $name;
     public $description;
     public $status;
     public $selectedCustomers = [];
+
+    // File uploads
+    public $uploadedFiles = [];
 
     // Task inline editing
     public $editingTaskId = null;
@@ -37,7 +47,7 @@ class ProjectDetail extends Component
 
     public function loadProject()
     {
-        $query = Project::with(['creator', 'customers', 'tasks.assignee']);
+        $query = Project::with(['creator', 'customers', 'tasks.assignee', 'files']);
 
         $user = Auth::user();
 
@@ -99,6 +109,29 @@ class ProjectDetail extends Component
 
         $this->selectedCustomers = $this->project->customers->pluck('id')->toArray();
         $this->showEditCustomersModal = true;
+    }
+
+    public function updateStatus($newStatus)
+    {
+        try {
+            // Check authorization
+            if (Auth::user()->role === 'freelance' && $this->project->created_by !== Auth::id()) {
+                $this->dispatch('notify', message: 'You can only edit your own projects.', type: 'warning');
+                return;
+            }
+
+            // Validate status
+            if (!in_array($newStatus, ['active', 'completed', 'on_hold'])) {
+                $this->dispatch('notify', message: 'Invalid status.', type: 'error');
+                return;
+            }
+
+            $this->project->update(['status' => $newStatus]);
+            $this->dispatch('notify', message: 'Status updated successfully!', type: 'success');
+            $this->loadProject();
+        } catch (\Exception $e) {
+            $this->dispatch('notify', message: 'Failed to update status. ' . $e->getMessage(), type: 'error');
+        }
     }
 
     public function updateProject()
@@ -270,6 +303,99 @@ class ProjectDetail extends Component
         } catch (\Exception $e) {
             $this->dispatch('notify', message: 'Failed to delete task. ' . $e->getMessage(), type: 'error');
             $this->confirmingDeleteTaskId = null;
+        }
+    }
+
+    public function openUploadFiles()
+    {
+        // Check authorization
+        if (Auth::user()->role === 'freelance' && $this->project->created_by !== Auth::id()) {
+            $this->dispatch('notify', message: 'You can only manage files for your own projects.', type: 'warning');
+            return;
+        }
+
+        $this->uploadedFiles = [];
+        $this->showUploadFilesModal = true;
+    }
+
+    public function uploadFiles()
+    {
+        try {
+            // Validate files exist
+            if (empty($this->uploadedFiles)) {
+                $this->dispatch('notify', message: 'Please select at least one file.', type: 'error');
+                return;
+            }
+
+            // Ensure uploadedFiles is array
+            $files = is_array($this->uploadedFiles) ? $this->uploadedFiles : [$this->uploadedFiles];
+
+            // Check file limit
+            $currentFilesCount = $this->project->files()->count();
+            $newFilesCount = count($files);
+
+            if ($currentFilesCount + $newFilesCount > 5) {
+                $this->dispatch('notify', message: 'Cannot upload. Maximum 5 files per project. Currently ' . $currentFilesCount . ' files.', type: 'error');
+                return;
+            }
+
+            // Validate each file
+            $validated = $this->validate([
+                'uploadedFiles' => 'required',
+                'uploadedFiles.*' => 'required|file|mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt,zip,rar|max:10240',
+            ]);
+
+            foreach ($files as $file) {
+                if ($file && is_object($file)) {
+                    $fileName = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
+                    $filePath = $file->storeAs('projects', $fileName, 'public');
+
+                    File::create([
+                        'module_name' => 'Project',
+                        'module_id' => $this->project->id,
+                        'file_name' => $file->getClientOriginalName(),
+                        'file_path' => $filePath,
+                        'file_type' => $file->extension(),
+                        'mime_type' => $file->getMimeType(),
+                        'file_size' => $file->getSize(),
+                    ]);
+                }
+            }
+
+            $this->dispatch('notify', message: count($files) . ' file(s) uploaded successfully!', type: 'success');
+            $this->showUploadFilesModal = false;
+            $this->uploadedFiles = [];
+            $this->loadProject();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->dispatch('notify', message: 'Invalid file. Please check file type and size (max 10MB).', type: 'error');
+        } catch (\Exception $e) {
+            $this->dispatch('notify', message: 'Failed to upload files. ' . $e->getMessage(), type: 'error');
+        }
+    }
+
+    public function confirmDeleteFile($fileId)
+    {
+        $this->confirmingDeleteFileId = $fileId;
+    }
+
+    public function deleteFile()
+    {
+        try {
+            $file = File::findOrFail($this->confirmingDeleteFileId);
+
+            // Delete physical file
+            if (Storage::disk('public')->exists($file->file_path)) {
+                Storage::disk('public')->delete($file->file_path);
+            }
+
+            $file->delete();
+
+            $this->dispatch('notify', message: 'File deleted successfully!', type: 'success');
+            $this->confirmingDeleteFileId = null;
+            $this->loadProject();
+        } catch (\Exception $e) {
+            $this->dispatch('notify', message: 'Failed to delete file. ' . $e->getMessage(), type: 'error');
+            $this->confirmingDeleteFileId = null;
         }
     }
 
