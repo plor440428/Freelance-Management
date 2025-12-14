@@ -38,6 +38,7 @@ class Project extends Model
 
     public function files()
     {
-        return $this->morphMany(File::class, 'module', 'module_name', 'module_id');
+        return $this->hasMany(File::class, 'module_id')
+            ->where('module_name', 'Project');
     }
 }

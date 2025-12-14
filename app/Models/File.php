@@ -16,6 +16,8 @@ class File extends Model
         'file_size',
     ];
 
+    protected $appends = ['url'];
+
     public function getUrlAttribute()
     {
         return asset('storage/' . $this->file_path);

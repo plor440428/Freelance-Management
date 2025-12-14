@@ -306,25 +306,25 @@ class ProjectDetail extends Component
         }
     }
 
-    public function openUploadFiles()
+    public function updatedUploadedFiles()
     {
-        // Check authorization
-        if (Auth::user()->role === 'freelance' && $this->project->created_by !== Auth::id()) {
-            $this->dispatch('notify', message: 'You can only manage files for your own projects.', type: 'warning');
-            return;
-        }
-
-        $this->uploadedFiles = [];
-        $this->showUploadFilesModal = true;
+        // Auto upload when files are selected
+        $this->uploadFiles();
     }
 
     public function uploadFiles()
     {
         try {
+            // Check authorization
+            if (Auth::user()->role === 'freelance' && $this->project->created_by !== Auth::id()) {
+                $this->dispatch('notify', message: 'You can only manage files for your own projects.', type: 'warning');
+                $this->uploadedFiles = [];
+                return;
+            }
+
             // Validate files exist
             if (empty($this->uploadedFiles)) {
-                $this->dispatch('notify', message: 'Please select at least one file.', type: 'error');
-                return;
+                return; // Silent return for empty selection
             }
 
             // Ensure uploadedFiles is array
@@ -336,15 +336,17 @@ class ProjectDetail extends Component
 
             if ($currentFilesCount + $newFilesCount > 5) {
                 $this->dispatch('notify', message: 'Cannot upload. Maximum 5 files per project. Currently ' . $currentFilesCount . ' files.', type: 'error');
+                $this->uploadedFiles = [];
                 return;
             }
 
             // Validate each file
-            $validated = $this->validate([
+            $this->validate([
                 'uploadedFiles' => 'required',
-                'uploadedFiles.*' => 'required|file|mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt,zip,rar|max:10240',
+                'uploadedFiles.*' => 'required|file|mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt,zip,rar,webp|max:10240',
             ]);
 
+            $uploadedCount = 0;
             foreach ($files as $file) {
                 if ($file && is_object($file)) {
                     $fileName = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
@@ -359,11 +361,11 @@ class ProjectDetail extends Component
                         'mime_type' => $file->getMimeType(),
                         'file_size' => $file->getSize(),
                     ]);
+                    $uploadedCount++;
                 }
             }
 
-            $this->dispatch('notify', message: count($files) . ' file(s) uploaded successfully!', type: 'success');
-            $this->showUploadFilesModal = false;
+            $this->dispatch('notify', message: $uploadedCount . ' file(s) uploaded successfully!', type: 'success');
             $this->uploadedFiles = [];
             $this->loadProject();
         } catch (\Illuminate\Validation\ValidationException $e) {
