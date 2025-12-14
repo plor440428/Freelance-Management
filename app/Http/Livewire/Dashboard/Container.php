@@ -21,7 +21,7 @@ class Container extends Component
             'home' => ['admin', 'freelance', 'customer'],
             'projects' => ['admin', 'freelance', 'customer'],
             'tasks' => ['admin', 'freelance'],
-            'account' => ['admin', 'freelance'],
+            'account' => ['admin'],
             'approve' => ['admin'],
             'settings' => ['admin'],
         ];

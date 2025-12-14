@@ -127,10 +127,7 @@
                             </button>
                             <div id="profileMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
                                 <div class="p-3 text-sm text-slate-700">Signed in as <strong>{{ auth()->user()->email }}</strong></div>
-                                <div>
-                                    <button type="button" onclick="openAccountModal()" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-50">Edit profile</button>
-                                </div>
-                                <div class="border-t border-gray-200 ">
+                                <div class="border-t border-gray-200">
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <button type="submit" class="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-600">Logout</button>
@@ -173,20 +170,6 @@
     </div>
 </div>
 
-<!-- Account Modal (contains the Account Livewire component) -->
-<div id="accountModal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black opacity-40" onclick="closeAccountModal()"></div>
-    <div class="relative bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 overflow-hidden">
-        <div class="flex items-center justify-between p-4 border-b">
-            <h3 class="text-lg font-semibold">Edit Profile</h3>
-            <button onclick="closeAccountModal()" class="text-slate-600 hover:text-slate-800">&times;</button>
-        </div>
-        <div class="p-4">
-            @livewire('dashboard.account')
-        </div>
-    </div>
-</div>
-
 <script>
     (function() {
         const sidebar = document.getElementById('sidebar');
@@ -211,26 +194,6 @@
         document.addEventListener('click', function() {
             if (profileMenu && !profileMenu.classList.contains('hidden')) profileMenu.classList.add('hidden');
         });
-
-        // Modal control
-        window.openAccountModal = function() {
-            const modal = document.getElementById('accountModal');
-            if (!modal) return;
-            modal.classList.remove('hidden');
-        };
-
-        window.closeAccountModal = function() {
-            const modal = document.getElementById('accountModal');
-            if (!modal) return;
-            modal.classList.add('hidden');
-        };
-
-        // Close modal when Livewire emits profileUpdated
-        if (window.Livewire) {
-            Livewire.on('profileUpdated', function() {
-                closeAccountModal();
-            });
-        }
     })();
 </script>
 </div>
