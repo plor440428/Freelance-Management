@@ -76,7 +76,11 @@ class Tasks extends Component
         $user = Auth::user();
 
         // Get all tasks where user is assigned to OR created by user
+        // AND project is active (not completed or on_hold)
         $tasksQuery = Task::with(['project', 'assignee', 'creator'])
+            ->whereHas('project', function($q) {
+                $q->where('status', 'active');
+            })
             ->where(function($q) use ($user) {
                 $q->where('assigned_to', $user->id)
                   ->orWhere('created_by', $user->id);
