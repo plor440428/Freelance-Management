@@ -99,7 +99,25 @@
 
                     <!-- Accordion Content -->
                     @if(in_array($projectId, $openAccordions))
-                        <div class="border-t divide-y bg-slate-50">
+                        <div class="border-t bg-slate-50">
+                            <!-- Project Status Filter -->
+                            <div class="p-3 border-b bg-white" onclick="event.stopPropagation()">
+                                <div class="flex items-center gap-2">
+                                    <label class="text-sm text-slate-600">Filter:</label>
+                                    <select wire:model.live="projectStatusFilters.{{ $projectId }}" class="px-3 py-1.5 border rounded-lg text-sm">
+                                        <option value="all">All Status</option>
+                                        <option value="todo">Todo ({{ $group['stats']['todo'] }})</option>
+                                        <option value="in_progress">In Progress ({{ $group['stats']['in_progress'] }})</option>
+                                        <option value="completed">Completed ({{ $group['stats']['completed'] }})</option>
+                                    </select>
+                                    <span class="text-sm text-slate-500 ml-auto">
+                                        Showing {{ $group['tasks']->count() }} of {{ $group['stats']['total'] }} tasks
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Task List -->
+                            <div class="divide-y">
                             @foreach($group['tasks'] as $task)
                                 <div class="p-4 hover:bg-white transition cursor-pointer" wire:click="viewTask({{ $task->id }})">
                                     <div class="flex items-start justify-between gap-4">
@@ -166,6 +184,7 @@
                                     </div>
                                 </div>
                             @endforeach
+                            </div>
                         </div>
                     @endif
                 </div>
@@ -386,12 +405,12 @@
                     <div class="flex gap-3 pt-4 border-t">
                         @php
                             $user = auth()->user();
-                            $canManageProject = $user->role === 'admin' 
-                                || $selectedProject->created_by === $user->id 
+                            $canManageProject = $user->role === 'admin'
+                                || $selectedProject->created_by === $user->id
                                 || $selectedProject->freelance_id === $user->id
                                 || $selectedProject->managers->contains($user->id);
                         @endphp
-                        
+
                         @if($canManageProject && ($user->role === 'admin' || $selectedProject->created_by === $user->id || $selectedProject->freelance_id === $user->id))
                             <a href="{{ route('dashboard.projects.detail', $selectedProject->id) }}"
                                class="flex-1 px-4 py-2 bg-black text-white rounded-lg text-center hover:bg-slate-800">

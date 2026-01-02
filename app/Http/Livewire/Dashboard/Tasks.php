@@ -17,6 +17,7 @@ class Tasks extends Component
     public $filterPriority = 'all';
     public $searchTerm = '';
     public $openAccordions = [];
+    public $projectStatusFilters = []; // ['project_id' => 'status']
 
     public function mount()
     {
@@ -102,10 +103,19 @@ class Tasks extends Component
         $tasks = $tasksQuery->orderBy('due_date')->get();
 
         // Group tasks by project
-        $projectGroups = $tasks->groupBy('project_id')->map(function($projectTasks) {
+        $projectGroups = $tasks->groupBy('project_id')->map(function($projectTasks, $projectId) {
+            $project = $projectTasks->first()->project;
+
+            // Apply project-specific status filter if exists
+            $filteredTasks = $projectTasks;
+            if (isset($this->projectStatusFilters[$projectId]) && $this->projectStatusFilters[$projectId] !== 'all') {
+                $filteredTasks = $projectTasks->where('status', $this->projectStatusFilters[$projectId]);
+            }
+
             return [
-                'project' => $projectTasks->first()->project,
-                'tasks' => $projectTasks,
+                'project' => $project,
+                'tasks' => $filteredTasks,
+                'allTasks' => $projectTasks, // Keep all tasks for stats
                 'stats' => [
                     'total' => $projectTasks->count(),
                     'todo' => $projectTasks->where('status', 'todo')->count(),
