@@ -75,16 +75,19 @@ class Tasks extends Component
     {
         $user = Auth::user();
 
-        // Get all tasks where user is assigned to OR created by user
-        // AND project is active (not completed or on_hold)
+        // Get tasks based on user role
         $tasksQuery = Task::with(['project', 'assignee', 'creator'])
             ->whereHas('project', function($q) {
                 $q->where('status', 'active');
-            })
-            ->where(function($q) use ($user) {
+            });
+
+        // Admin sees all tasks, others see only assigned or created tasks
+        if ($user->role !== 'admin') {
+            $tasksQuery->where(function($q) use ($user) {
                 $q->where('assigned_to', $user->id)
                   ->orWhere('created_by', $user->id);
             });
+        }
 
         // Apply status filter
         if ($this->filterStatus !== 'all') {
