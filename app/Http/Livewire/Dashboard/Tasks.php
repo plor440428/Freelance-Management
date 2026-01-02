@@ -11,9 +11,12 @@ class Tasks extends Component
 {
     public $selectedTask = null;
     public $showTaskDetail = false;
+    public $selectedProject = null;
+    public $showProjectDetail = false;
     public $filterStatus = 'all';
     public $filterPriority = 'all';
     public $searchTerm = '';
+    public $openAccordions = [];
 
     public function mount()
     {
@@ -30,6 +33,27 @@ class Tasks extends Component
     {
         $this->showTaskDetail = false;
         $this->selectedTask = null;
+    }
+
+    public function viewProject($projectId)
+    {
+        $this->selectedProject = Project::with(['creator', 'freelance', 'customers', 'managers'])->find($projectId);
+        $this->showProjectDetail = true;
+    }
+
+    public function closeProjectDetail()
+    {
+        $this->showProjectDetail = false;
+        $this->selectedProject = null;
+    }
+
+    public function toggleAccordion($projectId)
+    {
+        if (in_array($projectId, $this->openAccordions)) {
+            $this->openAccordions = array_diff($this->openAccordions, [$projectId]);
+        } else {
+            $this->openAccordions[] = $projectId;
+        }
     }
 
     public function updateTaskStatus($taskId, $status)
@@ -77,8 +101,23 @@ class Tasks extends Component
 
         $tasks = $tasksQuery->orderBy('due_date')->get();
 
+        // Group tasks by project
+        $projectGroups = $tasks->groupBy('project_id')->map(function($projectTasks) {
+            return [
+                'project' => $projectTasks->first()->project,
+                'tasks' => $projectTasks,
+                'stats' => [
+                    'total' => $projectTasks->count(),
+                    'todo' => $projectTasks->where('status', 'todo')->count(),
+                    'in_progress' => $projectTasks->where('status', 'in_progress')->count(),
+                    'completed' => $projectTasks->where('status', 'completed')->count(),
+                ]
+            ];
+        });
+
         return view('livewire.dashboard.tasks', [
             'tasks' => $tasks,
+            'projectGroups' => $projectGroups,
         ]);
     }
 }
