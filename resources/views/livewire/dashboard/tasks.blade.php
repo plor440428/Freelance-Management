@@ -5,11 +5,11 @@
             <h3 class="text-xl font-bold">My Tasks</h3>
             <p class="text-sm text-slate-600">Tasks assigned to you</p>
         </div>
-        
+
         <div class="flex flex-wrap gap-2">
             <!-- Search -->
             <input type="text" wire:model.live="searchTerm" placeholder="Search tasks..." class="px-3 py-2 border rounded-lg text-sm w-48">
-            
+
             <!-- Status Filter -->
             <select wire:model.live="filterStatus" class="px-3 py-2 border rounded-lg text-sm">
                 <option value="all">All Status</option>
@@ -17,7 +17,7 @@
                 <option value="in_progress">In Progress</option>
                 <option value="completed">Completed</option>
             </select>
-            
+
             <!-- Priority Filter -->
             <select wire:model.live="filterPriority" class="px-3 py-2 border rounded-lg text-sm">
                 <option value="all">All Priority</option>
@@ -58,7 +58,7 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 mb-2">
                                     <h4 class="font-medium text-slate-900">{{ $task->title }}</h4>
-                                    
+
                                     <!-- Status Badge -->
                                     <span class="px-2 py-0.5 rounded text-xs font-medium
                                         @if($task->status === 'completed') bg-green-100 text-green-800
@@ -67,7 +67,7 @@
                                         @endif">
                                         {{ ucfirst(str_replace('_', ' ', $task->status)) }}
                                     </span>
-                                    
+
                                     <!-- Priority Badge -->
                                     <span class="px-2 py-0.5 rounded text-xs font-medium
                                         @if($task->priority === 'high') bg-red-100 text-red-800
@@ -77,11 +77,11 @@
                                         {{ ucfirst($task->priority) }}
                                     </span>
                                 </div>
-                                
+
                                 @if($task->description)
                                     <p class="text-sm text-slate-600 mb-2 line-clamp-1">{{ $task->description }}</p>
                                 @endif
-                                
+
                                 <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                                     <!-- Project -->
                                     <div class="flex items-center gap-1">
@@ -90,7 +90,7 @@
                                         </svg>
                                         <span>{{ $task->project->name }}</span>
                                     </div>
-                                    
+
                                     <!-- Assignee -->
                                     @if($task->assignee)
                                         <div class="flex items-center gap-1">
@@ -98,7 +98,7 @@
                                             <span>{{ $task->assignee->name }}</span>
                                         </div>
                                     @endif
-                                    
+
                                     <!-- Due Date -->
                                     @if($task->due_date)
                                         <div class="flex items-center gap-1 {{ $task->due_date->isPast() && $task->status !== 'completed' ? 'text-red-600' : '' }}">
@@ -113,10 +113,10 @@
                                     @endif
                                 </div>
                             </div>
-                            
+
                             <!-- Quick Status Update -->
                             <div class="shrink-0" onclick="event.stopPropagation()">
-                                <select wire:change="updateTaskStatus({{ $task->id }}, $event.target.value)" 
+                                <select wire:change="updateTaskStatus({{ $task->id }}, $event.target.value)"
                                     class="px-2 py-1 border rounded text-xs cursor-pointer">
                                     <option value="todo" @selected($task->status === 'todo')>Todo</option>
                                     <option value="in_progress" @selected($task->status === 'in_progress')>In Progress</option>
@@ -240,11 +240,7 @@
 
                     <!-- Actions -->
                     <div class="flex gap-3 pt-4 border-t">
-                        <a href="{{ route('dashboard.projects.detail', $selectedTask->project_id) }}" 
-                           class="flex-1 px-4 py-2 bg-black text-white rounded-lg text-center hover:bg-slate-800">
-                            View Project
-                        </a>
-                        <button wire:click="closeTaskDetail" class="flex-1 px-4 py-2 border rounded-lg hover:bg-slate-50">
+                        <button wire:click="closeTaskDetail" class="w-full px-4 py-2 border rounded-lg hover:bg-slate-50">
                             Close
                         </button>
                     </div>
