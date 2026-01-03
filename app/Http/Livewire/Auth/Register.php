@@ -26,36 +26,57 @@ class Register extends Component
 
     protected $rules = [
         'name' => 'required|string|min:3|max:255',
-        'email' => 'required|email|unique:users,email',
-        'password' => 'required|string|min:6|confirmed',
+        'email' => 'required|email:rfc|unique:users,email|max:255',
+        'password' => 'required|string|min:6|max:255|confirmed',
         'role' => 'required|in:customer,freelance',
         'profile_image' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
-        'payment_slip' => 'required|image|mimes:jpeg,jpg,png,gif,pdf|max:2048',
+        'payment_slip' => 'required|file|mimes:jpeg,jpg,png,gif,pdf|max:5120',
     ];
 
     protected $messages = [
-        'name.required' => 'Please enter your full name',
+        'name.required' => 'Full name is required',
         'name.min' => 'Name must be at least 3 characters',
         'name.max' => 'Name cannot exceed 255 characters',
         'email.required' => 'Email address is required',
         'email.email' => 'Please enter a valid email address',
-        'email.unique' => 'This email is already registered',
+        'email.unique' => 'This email is already registered in our system. Please use another email or login.',
+        'email.max' => 'Email cannot exceed 255 characters',
         'password.required' => 'Password is required',
         'password.min' => 'Password must be at least 6 characters',
-        'password.confirmed' => 'Passwords do not match',
+        'password.max' => 'Password cannot exceed 255 characters',
+        'password.confirmed' => 'Password confirmation does not match',
         'role.required' => 'Please select an account type',
-        'profile_image.image' => 'Profile picture must be an image',
-        'profile_image.mimes' => 'Profile picture must be JPEG, JPG, PNG or GIF',
+        'role.in' => 'Invalid account type selected',
+        'profile_image.image' => 'Profile picture must be an image file',
+        'profile_image.mimes' => 'Profile picture must be JPEG, JPG, PNG or GIF format',
         'profile_image.max' => 'Profile picture must not exceed 2MB',
-        'payment_slip.required' => 'Payment slip is required',
-        'payment_slip.image' => 'Payment slip must be an image',
-        'payment_slip.mimes' => 'Payment slip must be JPEG, JPG, PNG, GIF or PDF',
-        'payment_slip.max' => 'Payment slip must not exceed 2MB',
+        'payment_slip.required' => 'Payment slip is required to complete registration',
+        'payment_slip.file' => 'Payment slip must be a valid file',
+        'payment_slip.mimes' => 'Payment slip must be JPEG, JPG, PNG, GIF or PDF format',
+        'payment_slip.max' => 'Payment slip must not exceed 5MB',
     ];
 
     public function getAmountProperty()
     {
         return Setting::get($this->role . '_price', 0);
+    }
+
+    public function updatedEmail()
+    {
+        // Real-time email validation
+        $this->validateOnly('email');
+
+        // Check if email exists (case insensitive)
+        $existingUser = User::whereRaw('LOWER(email) = ?', [strtolower(trim($this->email))])->first();
+
+        if ($existingUser) {
+            $this->addError('email', 'This email is already registered in our system. Please use another email or login.');
+
+            $this->dispatch('show-notification', [
+                'type' => 'error',
+                'message' => '⚠️ Email already exists! Please use a different email address.'
+            ]);
+        }
     }
 
     public function updatedRole()
@@ -76,6 +97,22 @@ class Register extends Component
                 'has_payment_slip' => !is_null($this->payment_slip),
             ]);
 
+            // Double-check email uniqueness (case insensitive) before creating user
+            $emailExists = User::whereRaw('LOWER(email) = ?', [strtolower(trim($validatedData['email']))])->exists();
+
+            if ($emailExists) {
+                \Log::warning('Registration blocked: Email already exists', ['email' => $validatedData['email']]);
+
+                $this->addError('email', 'This email is already registered in our system. Please use another email or login.');
+
+                $this->dispatch('show-notification', [
+                    'type' => 'error',
+                    'message' => '⚠️ This email address is already registered! Please use a different email or try logging in.'
+                ]);
+
+                return;
+            }
+
             // Check if amount is available
             if ($this->amount <= 0) {
                 $this->dispatch('show-notification', [
@@ -87,8 +124,8 @@ class Register extends Component
 
             // Create user (not approved yet)
             $user = User::create([
-                'name' => $validatedData['name'],
-                'email' => $validatedData['email'],
+                'name' => trim($validatedData['name']),
+                'email' => strtolower(trim($validatedData['email'])),
                 'password' => Hash::make($validatedData['password']),
                 'role' => $validatedData['role'],
                 'is_approved' => false,
@@ -176,15 +213,17 @@ class Register extends Component
 
             \Log::info('=== Registration Completed Successfully ===');
 
-            // Show success notification
+            // Clear form
+            $this->reset(['name', 'email', 'password', 'password_confirmation', 'profile_image', 'payment_slip']);
+
+            // Show success modal
+            $this->dispatch('registration-success');
+
+            // Also show notification
             $this->dispatch('show-notification', [
                 'type' => 'success',
-                'message' => 'Registration successful! Your account is pending approval. You will be notified via email.'
+                'message' => '✓ Registration successful! Please check your email for verification.'
             ]);
-
-            // Redirect to login after short delay
-            session()->flash('success', 'Registration successful! Please wait for admin approval.');
-            return redirect()->route('login');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Validation failed', ['errors' => $e->errors()]);
