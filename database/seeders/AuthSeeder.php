@@ -24,6 +24,8 @@ class AuthSeeder extends Seeder
                 'name' => 'Admin User',
                 'password' => Hash::make('password123'),
                 'role' => 'admin',
+                'is_approved' => true,
+                'approved_at' => now(),
             ]
         );
 
@@ -34,6 +36,8 @@ class AuthSeeder extends Seeder
                 'name' => 'Freelance User',
                 'password' => Hash::make('password123'),
                 'role' => 'freelance',
+                'is_approved' => true,
+                'approved_at' => now(),
             ]
         );
 
@@ -44,6 +48,8 @@ class AuthSeeder extends Seeder
                 'name' => 'Customer User',
                 'password' => Hash::make('password123'),
                 'role' => 'customer',
+                'is_approved' => true,
+                'approved_at' => now(),
             ]
         );
 
