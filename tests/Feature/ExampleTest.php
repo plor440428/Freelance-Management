@@ -14,6 +14,7 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        // The application redirects guests to the login page, expect 302
+        $response->assertStatus(302);
     }
 }

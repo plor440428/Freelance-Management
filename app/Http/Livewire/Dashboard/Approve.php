@@ -153,35 +153,53 @@ class Approve extends Component
 
     public function render()
     {
-        // Get pending users (with or without payment proofs)
-        $pendingQuery = User::with(['paymentProofs' => function($q) {
-            $q->latest()->limit(1);
-        }])
-        ->where('is_approved', false);
+        // Initialize empty collections
+        $pendingUsers = collect();
+        $approvedUsers = collect();
+        $rejectedUsers = collect();
+        $users = collect();
 
-        // Apply payment proof filter only if user has payment proofs
-        if ($this->filterStatus !== 'all') {
-            $pendingQuery->where(function($q) {
-                $q->whereHas('paymentProofs', function($query) {
-                    $query->where('status', $this->filterStatus);
-                })
-                ->orWhereDoesntHave('paymentProofs'); // Include users without payment proofs
-            });
+        // Get users based on filter status
+        if ($this->filterStatus === 'pending') {
+            // Show pending approvals
+            $pendingUsers = User::with(['paymentProofs' => function($q) {
+                $q->latest()->limit(1);
+            }])
+            ->where('is_approved', false)
+            ->latest()
+            ->paginate(10, ['*'], 'page');
+        } elseif ($this->filterStatus === 'approved') {
+            // Show approved users
+            $approvedUsers = User::with(['paymentProofs' => function($q) {
+                $q->where('status', 'approved')->latest()->limit(1);
+            }])
+            ->where('is_approved', true)
+            ->latest()
+            ->paginate(10, ['*'], 'page');
+        } elseif ($this->filterStatus === 'rejected') {
+            // Show rejected users (with rejected payment proofs)
+            $rejectedUsers = User::with(['paymentProofs' => function($q) {
+                $q->where('status', 'rejected')->latest()->limit(1);
+            }])
+            ->whereHas('paymentProofs', function($q) {
+                $q->where('status', 'rejected');
+            })
+            ->latest()
+            ->paginate(10, ['*'], 'page');
+        } else { // 'all'
+            // Show all users
+            $users = User::with(['paymentProofs' => function($q) {
+                $q->latest()->limit(1);
+            }])
+            ->latest()
+            ->paginate(10, ['*'], 'page');
         }
-
-        $pendingUsers = $pendingQuery->latest()->paginate(10, ['*'], 'pendingPage');
-
-        // Get approved users
-        $approvedUsers = User::with(['paymentProofs' => function($q) {
-            $q->where('status', 'approved')->latest()->limit(1);
-        }])
-        ->where('is_approved', true)
-        ->latest()
-        ->paginate(10, ['*'], 'approvedPage');
 
         return view('livewire.dashboard.approve', [
             'pendingUsers' => $pendingUsers,
             'approvedUsers' => $approvedUsers,
+            'rejectedUsers' => $rejectedUsers,
+            'users' => $users,
         ]);
     }
 }

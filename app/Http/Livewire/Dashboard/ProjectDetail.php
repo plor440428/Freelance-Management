@@ -281,6 +281,23 @@ class ProjectDetail extends Component
 
     public function addNewTask()
     {
+        // Check authorization
+        if (!$this->canManageProject()) {
+            $this->dispatch('notify', message: 'You do not have permission to add tasks to this project.', type: 'warning');
+            return;
+        }
+
+        // Initialize tasks array for the new task so Livewire bindings work
+        $this->tasks = [];
+        $this->tasks[0] = [
+            'title' => '',
+            'description' => '',
+            'status' => 'todo',
+            'priority' => 'medium',
+            'assigned_to' => null,
+            'due_date' => null,
+        ];
+
         $this->addingNewTask = true;
         $this->editingTaskId = null;
     }
@@ -288,11 +305,28 @@ class ProjectDetail extends Component
     public function saveNewTask($index)
     {
         try {
+            // Validate nested task fields
+            $this->validate([
+                'tasks.*.title' => 'required|string|min:1|max:255',
+                'tasks.*.description' => 'nullable|string',
+                'tasks.*.status' => 'required|in:todo,in_progress,completed',
+                'tasks.*.priority' => 'required|in:low,medium,high',
+                'tasks.*.assigned_to' => 'nullable|exists:users,id',
+                'tasks.*.due_date' => 'nullable|date',
+            ]);
+
             $task = $this->tasks[$index] ?? [];
 
-            if (empty($task['title'])) {
-                $this->dispatch('notify', message: 'Task title is required.', type: 'error');
+            // Authorization
+            if (!$this->canManageProject()) {
+                $this->dispatch('notify', message: 'You do not have permission to add tasks to this project.', type: 'warning');
                 return;
+            }
+
+            // Normalize assigned_to
+            $assignedTo = $task['assigned_to'] ?? null;
+            if ($assignedTo === '') {
+                $assignedTo = null;
             }
 
             Task::create([
@@ -301,7 +335,7 @@ class ProjectDetail extends Component
                 'description' => $task['description'] ?? null,
                 'status' => $task['status'] ?? 'todo',
                 'priority' => $task['priority'] ?? 'medium',
-                'assigned_to' => $task['assigned_to'] ?? null,
+                'assigned_to' => $assignedTo,
                 'created_by' => auth()->id(),
                 'due_date' => $task['due_date'] ?? null,
             ]);
@@ -325,6 +359,22 @@ class ProjectDetail extends Component
     {
         $this->editingTaskId = $taskId;
         $this->addingNewTask = false;
+
+        // Populate the tasks array with current values for editing so bindings work
+        $this->tasks = [];
+        foreach ($this->project->tasks as $index => $t) {
+            if ($t->id == $taskId) {
+                $this->tasks[$index] = [
+                    'title' => $t->title,
+                    'description' => $t->description,
+                    'status' => $t->status,
+                    'priority' => $t->priority,
+                    'assigned_to' => $t->assigned_to,
+                    'due_date' => $t->due_date?->format('Y-m-d'),
+                ];
+                break;
+            }
+        }
     }
 
     public function updateTaskField($taskId, $field, $value)
@@ -355,17 +405,33 @@ class ProjectDetail extends Component
                 return;
             }
 
+            // Validate nested task fields for editing
+            $this->validate([
+                'tasks.*.title' => 'required|string|min:1|max:255',
+                'tasks.*.description' => 'nullable|string',
+                'tasks.*.status' => 'required|in:todo,in_progress,completed',
+                'tasks.*.priority' => 'required|in:low,medium,high',
+                'tasks.*.assigned_to' => 'nullable|exists:users,id',
+                'tasks.*.due_date' => 'nullable|date',
+            ]);
+
             // Validate task data
             $taskData = $this->tasks[$taskIndex];
 
             // Update the task
             $task = Task::findOrFail($taskId);
+
+            $assignedTo = $taskData['assigned_to'] ?? null;
+            if ($assignedTo === '') {
+                $assignedTo = null;
+            }
+
             $task->update([
                 'title' => $taskData['title'] ?? $task->title,
                 'description' => $taskData['description'] ?? $task->description,
                 'status' => $taskData['status'] ?? $task->status,
                 'priority' => $taskData['priority'] ?? $task->priority,
-                'assigned_to' => $taskData['assigned_to'] ?? $task->assigned_to,
+                'assigned_to' => $assignedTo,
                 'due_date' => $taskData['due_date'] ?? $task->due_date,
             ]);
 

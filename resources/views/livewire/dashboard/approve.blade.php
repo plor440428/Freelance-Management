@@ -24,30 +24,313 @@
     </div>
 
     <!-- Pending Users List -->
-    <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
-        <div class="px-6 py-4 border-b border-slate-200">
-            <h4 class="font-semibold text-lg">Pending Approvals ({{ $pendingUsers->count() }})</h4>
-        </div>
-
-        @if($pendingUsers->isEmpty())
-            <div class="p-8 text-center text-slate-500">
-                <p>No pending approvals</p>
+    @if($filterStatus === 'pending' || $filterStatus === 'all')
+        <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-slate-200">
+                <h4 class="font-semibold text-lg">
+                    @if($filterStatus === 'all')
+                        Pending Approvals
+                    @else
+                        Pending Approvals ({{ $pendingUsers->total() }})
+                    @endif
+                </h4>
             </div>
-        @else
+
+            @if($pendingUsers->isEmpty() && !collect($users)->isEmpty())
+                <div class="p-8 text-center text-slate-500">
+                    <p>No pending approvals</p>
+                </div>
+            @elseif($pendingUsers->isEmpty())
+                <div class="p-8 text-center text-slate-500">
+                    <p>No pending approvals</p>
+                </div>
+            @else
+                <table class="w-full">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Subscription</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Registered</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        @foreach($pendingUsers as $user)
+                            @php
+                                $proof = $user->paymentProofs->first();
+                            @endphp
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        @if($user->profile_image)
+                                            <img src="{{ asset('storage/' . $user->profile_image) }}"
+                                                 class="w-10 h-10 rounded-full mr-3" alt="{{ $user->name }}">
+                                        @else
+                                            <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold mr-3">
+                                                {{ substr($user->name, 0, 1) }}
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <div class="font-medium">{{ $user->name }}</div>
+                                            <div class="text-sm text-slate-500">{{ $user->email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                        {{ $user->role === 'freelance' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
+                                        {{ ucfirst($user->role) }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if($proof)
+                                        <span class="text-sm">Lifetime Access</span>
+                                    @else
+                                        <span class="text-sm text-slate-400">-</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if($proof)
+                                        <span class="font-semibold">฿{{ number_format($proof->amount, 2) }}</span>
+                                    @else
+                                        <span class="text-slate-400">-</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if($proof)
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                            {{ $proof->status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                               ($proof->status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700') }}">
+                                            {{ ucfirst($proof->status) }}
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700">Pending</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-600">
+                                    {{ $user->created_at->diffForHumans() }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <button wire:click="viewUser({{ $user->id }})"
+                                            class="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                                        Review
+                                    </button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div class="px-6 py-4 border-t border-slate-200">
+                    {{ $pendingUsers->links() }}
+                </div>
+            @endif
+        </div>
+    @endif
+
+    <!-- Approved Users List -->
+    @if($filterStatus === 'approved' || $filterStatus === 'all')
+        <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-slate-200">
+                <h4 class="font-semibold text-lg">
+                    @if($filterStatus === 'all')
+                        Approved Users
+                    @else
+                        Approved Users ({{ $approvedUsers->total() }})
+                    @endif
+                </h4>
+            </div>
+
+            @if($approvedUsers->isEmpty() && !collect($users)->isEmpty())
+                <div class="p-8 text-center text-slate-500">
+                    <p>No approved users</p>
+                </div>
+            @elseif($approvedUsers->isEmpty())
+                <div class="p-8 text-center text-slate-500">
+                    <p>No approved users</p>
+                </div>
+            @else
+                <table class="w-full">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Subscription</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Approved At</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Approved By</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        @foreach($approvedUsers as $user)
+                            @php
+                                $proof = $user->paymentProofs->first();
+                            @endphp
+                            <tr>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        @if($user->profile_image)
+                                            <img src="{{ asset('storage/' . $user->profile_image) }}"
+                                                 class="w-8 h-8 rounded-full mr-2" alt="{{ $user->name }}">
+                                        @else
+                                            <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                                {{ substr($user->name, 0, 1) }}
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <div class="font-medium text-sm">{{ $user->name }}</div>
+                                            <div class="text-xs text-slate-500">{{ $user->email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                        {{ $user->role === 'freelance' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
+                                        {{ ucfirst($user->role) }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm">
+                                    @if($proof)
+                                        Lifetime Access
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-sm font-semibold">
+                                    @if($proof)
+                                        ฿{{ number_format($proof->amount, 2) }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-600">
+                                    {{ $user->approved_at?->format('M d, Y H:i') }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-600">
+                                    {{ $user->approver?->name ?? '-' }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div class="px-6 py-4 border-t border-slate-200">
+                    {{ $approvedUsers->links() }}
+                </div>
+            @endif
+        </div>
+    @endif
+
+    <!-- Rejected Users List -->
+    @if($filterStatus === 'rejected')
+        <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-slate-200">
+                <h4 class="font-semibold text-lg">Rejected Users ({{ $rejectedUsers->total() }})</h4>
+            </div>
+
+            @if($rejectedUsers->isEmpty())
+                <div class="p-8 text-center text-slate-500">
+                    <p>No rejected users</p>
+                </div>
+            @else
+                <table class="w-full">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Admin Note</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Rejected At</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        @foreach($rejectedUsers as $user)
+                            @php
+                                $proof = $user->paymentProofs->first();
+                            @endphp
+                            <tr>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        @if($user->profile_image)
+                                            <img src="{{ asset('storage/' . $user->profile_image) }}"
+                                                 class="w-8 h-8 rounded-full mr-2" alt="{{ $user->name }}">
+                                        @else
+                                            <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                                {{ substr($user->name, 0, 1) }}
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <div class="font-medium text-sm">{{ $user->name }}</div>
+                                            <div class="text-xs text-slate-500">{{ $user->email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                        {{ $user->role === 'freelance' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
+                                        {{ ucfirst($user->role) }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm font-semibold">
+                                    @if($proof)
+                                        ฿{{ number_format($proof->amount, 2) }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if($proof)
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700">
+                                            {{ ucfirst($proof->status) }}
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-600">
+                                    <span title="{{ $proof?->admin_note ?? '-' }}" class="truncate block">
+                                        {{ $proof?->admin_note ?? '-' }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-600">
+                                    {{ $proof?->approved_at?->format('M d, Y H:i') ?? '-' }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div class="px-6 py-4 border-t border-slate-200">
+                    {{ $rejectedUsers->links() }}
+                </div>
+            @endif
+        </div>
+    @endif
+
+    <!-- All Users List -->
+    @if($filterStatus === 'all' && $users->isNotEmpty())
+        <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-slate-200">
+                <h4 class="font-semibold text-lg">All Users ({{ $users->total() }})</h4>
+            </div>
+
             <table class="w-full">
                 <thead class="bg-slate-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">User</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Role</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Subscription</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Amount</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Registered</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200">
-                    @foreach($pendingUsers as $user)
+                    @foreach($users as $user)
                         @php
                             $proof = $user->paymentProofs->first();
                         @endphp
@@ -56,103 +339,9 @@
                                 <div class="flex items-center">
                                     @if($user->profile_image)
                                         <img src="{{ asset('storage/' . $user->profile_image) }}"
-                                             class="w-10 h-10 rounded-full mr-3" alt="{{ $user->name }}">
-                                    @else
-                                        <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold mr-3">
-                                            {{ substr($user->name, 0, 1) }}
-                                        </div>
-                                    @endif
-                                    <div>
-                                        <div class="font-medium">{{ $user->name }}</div>
-                                        <div class="text-sm text-slate-500">{{ $user->email }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full
-                                    {{ $user->role === 'freelance' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
-                                    {{ ucfirst($user->role) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                @if($proof)
-                                    <span class="text-sm">Lifetime Access</span>
-                                @else
-                                    <span class="text-sm text-slate-400">-</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4">
-                                @if($proof)
-                                    <span class="font-semibold">฿{{ number_format($proof->amount, 2) }}</span>
-                                @else
-                                    <span class="text-slate-400">-</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4">
-                                @if($proof)
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full
-                                        {{ $proof->status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                           ($proof->status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700') }}">
-                                        {{ ucfirst($proof->status) }}
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 text-sm text-slate-600">
-                                {{ $user->created_at->diffForHumans() }}
-                            </td>
-                            <td class="px-6 py-4">
-                                <button wire:click="viewUser({{ $user->id }})"
-                                        class="text-blue-600 hover:text-blue-800 font-medium text-sm">
-                                    Review
-                                </button>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            
-            <!-- Pagination -->
-            <div class="px-6 py-4 border-t border-slate-200">
-                {{ $pendingUsers->links() }}
-            </div>
-        @endif
-    </div>
-
-    <!-- Recently Approved Users -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-200">
-            <h4 class="font-semibold text-lg">Recently Approved</h4>
-        </div>
-
-        @if($approvedUsers->isEmpty())
-            <div class="p-8 text-center text-slate-500">
-                <p>No approved users yet</p>
-            </div>
-        @else
-            <table class="w-full">
-                <thead class="bg-slate-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">User</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Role</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Subscription</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Amount</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Approved At</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Approved By</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                    @foreach($approvedUsers as $user)
-                        @php
-                            $proof = $user->paymentProofs->first();
-                        @endphp
-                        <tr>
-                            <td class="px-6 py-4">
-                                <div class="flex items-center">
-                                    @if($user->profile_image)
-                                        <img src="{{ asset('storage/' . $user->profile_image) }}"
                                              class="w-8 h-8 rounded-full mr-2" alt="{{ $user->name }}">
                                     @else
-                                        <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                        <div class="w-8 h-8 rounded-full bg-slate-400 flex items-center justify-center text-white text-xs font-semibold mr-2">
                                             {{ substr($user->name, 0, 1) }}
                                         </div>
                                     @endif
@@ -169,36 +358,36 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-sm">
-                                @if($proof)
-                                    Lifetime Access
+                                @if($user->is_approved)
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Approved</span>
                                 @else
-                                    -
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 text-sm font-semibold">
-                                @if($proof)
-                                    ฿{{ number_format($proof->amount, 2) }}
-                                @else
-                                    -
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700">Pending</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-sm text-slate-600">
-                                {{ $user->approved_at?->format('M d, Y H:i') }}
+                                {{ $user->created_at->diffForHumans() }}
                             </td>
-                            <td class="px-6 py-4 text-sm text-slate-600">
-                                {{ $user->approver?->name ?? '-' }}
+                            <td class="px-6 py-4">
+                                @if(!$user->is_approved)
+                                    <button wire:click="viewUser({{ $user->id }})"
+                                            class="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                                        Review
+                                    </button>
+                                @else
+                                    <span class="text-slate-400 text-sm">-</span>
+                                @endif
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
-            
+
             <!-- Pagination -->
             <div class="px-6 py-4 border-t border-slate-200">
-                {{ $approvedUsers->links() }}
+                {{ $users->links() }}
             </div>
-        @endif
-    </div>
+        </div>
+    @endif
 
     <!-- User Detail Modal -->
     @if($showUserDetail && $selectedUser)
@@ -299,7 +488,7 @@
                                     class="px-6 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 font-medium">
                                 Cancel
                             </button>
-                            
+
                             <!-- Reject Dropdown -->
                             <div x-data="{ open: false }" class="relative">
                                 <button @click="open = !open"
@@ -310,7 +499,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                     </svg>
                                 </button>
-                                
+
                                 <div x-show="open"
                                      @click.away="open = false"
                                      x-transition:enter="transition ease-out duration-100"
@@ -345,7 +534,7 @@
                                     </button>
                                 </div>
                             </div>
-                            
+
                             <button wire:click="approveUser"
                                     class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center space-x-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
