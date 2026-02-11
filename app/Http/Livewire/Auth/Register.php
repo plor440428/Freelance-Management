@@ -8,9 +8,11 @@ use App\Models\User;
 use App\Models\File;
 use App\Models\Setting;
 use App\Models\PaymentProof;
+use App\Mail\AdminSignupRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
 
 class Register extends Component
 {
@@ -87,6 +89,8 @@ class Register extends Component
     public function register()
     {
         try {
+            $paymentProof = null;
+
             // Validate all inputs
             $validatedData = $this->validate();
 
@@ -209,6 +213,28 @@ class Register extends Component
                 $user->delete();
 
                 throw new \Exception('Failed to upload payment slip. Please try again.');
+            }
+
+            $adminEmails = User::where('role', 'admin')
+                ->pluck('email')
+                ->filter()
+                ->values()
+                ->all();
+
+            if (!empty($adminEmails)) {
+                $fromAddress = config('mail.from.address');
+                $fromName = config('mail.from.name');
+
+                \Log::info('Sending admin signup email', [
+                    'from' => $fromAddress,
+                    'from_name' => $fromName,
+                    'to' => $adminEmails,
+                    'user_id' => $user->id,
+                ]);
+
+                Mail::to($adminEmails)->send(new AdminSignupRequest($user, $paymentProof));
+            } else {
+                \Log::warning('No admin email recipients found for signup request');
             }
 
             \Log::info('=== Registration Completed Successfully ===');
