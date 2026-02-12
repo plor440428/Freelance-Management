@@ -24,7 +24,10 @@ class Tasks extends Component
 
     public function mount()
     {
-        //
+        // Prevent customers from accessing tasks page
+        if (Auth::user()->role === 'customer') {
+            abort(403, 'Unauthorized access.');
+        }
     }
 
     public function viewTask($taskId)
@@ -62,6 +65,12 @@ class Tasks extends Component
 
     public function updateTaskStatus($taskId, $status)
     {
+        // Prevent customers from updating task status
+        if (Auth::user()->role === 'customer') {
+            $this->dispatch('notify', message: 'Unauthorized action.', type: 'error');
+            return;
+        }
+
         $task = Task::find($taskId);
         if ($task) {
             $task->update(['status' => $status]);

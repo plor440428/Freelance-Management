@@ -5,8 +5,10 @@ namespace App\Http\Livewire\Dashboard;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use App\Models\Project;
 use App\Models\User;
+use App\Mail\ProjectCreatedNotification;
 
 class Projects extends Component
 {
@@ -89,6 +91,12 @@ class Projects extends Component
 
     public function createProject()
     {
+        // Prevent customers from creating projects
+        if (Auth::user()->role === 'customer') {
+            $this->dispatch('notify', message: 'Customers cannot create projects.', type: 'error');
+            return;
+        }
+
         try {
             $this->validate();
 
@@ -102,6 +110,16 @@ class Projects extends Component
             // Add customers
             if (!empty($this->selectedCustomers)) {
                 $project->customers()->sync($this->selectedCustomers);
+                
+                // Send email notification to each customer
+                $customers = User::whereIn('id', $this->selectedCustomers)->get();
+                foreach ($customers as $customer) {
+                    try {
+                        Mail::to($customer->email)->send(new ProjectCreatedNotification($project->load(['creator', 'freelance', 'customers', 'tasks']), $customer));
+                    } catch (\Exception $mailException) {
+                        \Log::error('Failed to send project notification email to ' . $customer->email . ': ' . $mailException->getMessage());
+                    }
+                }
             }
 
             $this->dispatch('notify', message: 'Project created successfully!', type: 'success');

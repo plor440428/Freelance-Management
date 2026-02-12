@@ -379,6 +379,12 @@ class ProjectDetail extends Component
 
     public function updateTaskField($taskId, $field, $value)
     {
+        // Check authorization
+        if (!$this->canManageProject()) {
+            $this->dispatch('notify', message: 'You do not have permission to edit tasks.', type: 'warning');
+            return;
+        }
+
         try {
             $task = Task::findOrFail($taskId);
             $task->update([$field => $value]);
@@ -390,6 +396,12 @@ class ProjectDetail extends Component
 
     public function saveTask($taskId)
     {
+        // Check authorization
+        if (!$this->canManageProject()) {
+            $this->dispatch('notify', message: 'You do not have permission to edit tasks.', type: 'warning');
+            return;
+        }
+
         try {
             // Find the task in the tasks array
             $taskIndex = null;
@@ -457,6 +469,12 @@ class ProjectDetail extends Component
 
     public function deleteTask()
     {
+        // Check authorization
+        if (!$this->canManageProject()) {
+            $this->dispatch('notify', message: 'You do not have permission to delete tasks.', type: 'warning');
+            return;
+        }
+
         try {
             $task = Task::findOrFail($this->confirmingDeleteTaskId);
             $task->delete();
@@ -478,6 +496,12 @@ class ProjectDetail extends Component
 
     public function uploadFiles()
     {
+        // Check authorization
+        if (!$this->canManageProject()) {
+            $this->dispatch('notify', message: 'You do not have permission to upload files.', type: 'warning');
+            return;
+        }
+
         try {
             // Check authorization
             if (!$this->canManageProject()) {
@@ -546,6 +570,12 @@ class ProjectDetail extends Component
 
     public function deleteFile()
     {
+        // Check authorization
+        if (!$this->canManageProject()) {
+            $this->dispatch('notify', message: 'You do not have permission to delete files.', type: 'warning');
+            return;
+        }
+
         try {
             $file = File::findOrFail($this->confirmingDeleteFileId);
 

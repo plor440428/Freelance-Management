@@ -16,18 +16,20 @@
           <span>Projects</span>
         </button>
       </li>
-      <li>
-        <button wire:click="setActive('tasks')" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'tasks') bg-slate-800 @endif">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 6h18M3 14h18"/></svg>
-          <span>Tasks</span>
-        </button>
-      </li>
-      <li>
-        <button wire:click="setActive('account')" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'account') bg-slate-800 @endif">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v4h6v-4c0-1.657-1.343-3-3-3zM12 4a4 4 0 110 8 4 4 0 010-8z"/></svg>
-          <span>Account</span>
-        </button>
-      </li>
+      @if(auth()->user()->role !== 'customer')
+        <li>
+          <button wire:click="setActive('tasks')" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'tasks') bg-slate-800 @endif">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 6h18M3 14h18"/></svg>
+            <span>Tasks</span>
+          </button>
+        </li>
+        <li>
+          <button wire:click="setActive('account')" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'account') bg-slate-800 @endif">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v4h6v-4c0-1.657-1.343-3-3-3zM12 4a4 4 0 110 8 4 4 0 010-8z"/></svg>
+            <span>Account</span>
+          </button>
+        </li>
+      @endif
     </ul>
   </nav>
 </aside>

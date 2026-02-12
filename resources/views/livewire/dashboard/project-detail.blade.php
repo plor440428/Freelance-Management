@@ -195,7 +195,7 @@
                                             @endif
                                         </div>
                                     </div>
-                                    @if(auth()->user()->role === 'admin' || $project->created_by === auth()->id() || $project->freelance_id === auth()->id())
+                                    @if(auth()->user()->role !== 'customer')
                                         <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">
                                             <button wire:click="editTask({{ $task->id }})" class="p-2 text-blue-600 hover:bg-blue-50 rounded">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -260,7 +260,7 @@
             <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h4 class="font-semibold text-sm">Project Managers</h4>
-                    @if(auth()->user()->role === 'admin' || $project->created_by === auth()->id() || $project->freelance_id === auth()->id())
+                    @if(auth()->user()->role !== 'customer')
                         <button wire:click="editManagers" class="text-xs text-blue-600 hover:text-blue-800">
                             {{ $project->managers->count() > 0 ? 'Edit' : 'Add' }}
                         </button>
@@ -287,7 +287,7 @@
             <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h4 class="font-semibold text-sm">Customers</h4>
-                    @if(auth()->user()->role === 'admin' || $project->created_by === auth()->id() || $project->freelance_id === auth()->id())
+                    @if(auth()->user()->role !== 'customer')
                         <button wire:click="editCustomers" class="text-xs text-blue-600 hover:text-blue-800">
                             Edit
                         </button>
@@ -314,7 +314,7 @@
             <div class="bg-white rounded-lg shadow p-4">
                 <h4 class="font-semibold text-sm mb-3">Files ({{ $project->files->count() }}/5)</h4>
 
-                @if(auth()->user()->role === 'admin' || $project->created_by === auth()->id() || $project->freelance_id === auth()->id())
+                @if(auth()->user()->role !== 'customer')
                     @if($project->files->count() < 5)
                         <label class="block mb-3">
                             <div class="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:border-slate-400 hover:bg-slate-50 transition cursor-pointer">
@@ -347,7 +347,7 @@
                                     @endif
                                     <p class="text-xs font-medium text-slate-900 truncate flex-1">{{ $file->file_name }}</p>
                                 </a>
-                                @if(auth()->user()->role === 'admin' || $project->created_by === auth()->id() || $project->freelance_id === auth()->id())
+                                @if(auth()->user()->role !== 'customer')
                                     <button wire:click="confirmDeleteFile({{ $file->id }})"
                                         class="text-slate-400 hover:text-red-600 p-1 opacity-0 group-hover:opacity-100 transition">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

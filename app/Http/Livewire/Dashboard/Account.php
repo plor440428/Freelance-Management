@@ -38,6 +38,14 @@ class Account extends Component
 
     protected $queryString = ['search', 'filterRole', 'filterDate', 'sortBy', 'sortDirection'];
 
+    public function mount()
+    {
+        // Prevent customers from accessing account management
+        if (Auth::user()->role === 'customer') {
+            abort(403, 'Unauthorized access.');
+        }
+    }
+
     public function updated($property)
     {
         if (in_array($property, ['search', 'filterRole', 'filterDate', 'sortBy', 'sortDirection'])) {
@@ -66,6 +74,12 @@ class Account extends Component
 
     public function createUser()
     {
+        // Prevent customers from creating users
+        if (Auth::user()->role === 'customer') {
+            $this->dispatch('notify', message: 'Unauthorized action.', type: 'error');
+            return;
+        }
+
         try {
             $this->validate();
 
@@ -107,6 +121,12 @@ class Account extends Component
 
     public function edit($id)
     {
+        // Prevent customers from editing users
+        if (Auth::user()->role === 'customer') {
+            $this->dispatch('notify', message: 'Unauthorized action.', type: 'error');
+            return;
+        }
+
         $user = User::findOrFail($id);
         $this->editingUserId = $user->id;
         $this->name = $user->name;
@@ -120,6 +140,12 @@ class Account extends Component
 
     public function updateUser()
     {
+        // Prevent customers from updating users
+        if (Auth::user()->role === 'customer') {
+            $this->dispatch('notify', message: 'Unauthorized action.', type: 'error');
+            return;
+        }
+
         try {
             $this->validate();
 
@@ -161,11 +187,23 @@ class Account extends Component
 
     public function confirmDelete($id)
     {
+        // Prevent customers from deleting users
+        if (Auth::user()->role === 'customer') {
+            $this->dispatch('notify', message: 'Unauthorized action.', type: 'error');
+            return;
+        }
+
         $this->confirmingDeleteId = $id;
     }
 
     public function deleteUser($id)
     {
+        // Prevent customers from deleting users
+        if (Auth::user()->role === 'customer') {
+            $this->dispatch('notify', message: 'Unauthorized action.', type: 'error');
+            return;
+        }
+
         try {
             $user = User::findOrFail($id);
 

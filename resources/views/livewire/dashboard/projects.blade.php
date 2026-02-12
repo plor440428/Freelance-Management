@@ -5,9 +5,11 @@
             <h3 class="text-lg font-semibold">Projects</h3>
             <p class="text-sm text-slate-600">Manage your projects and tasks.</p>
         </div>
-        <button wire:click="$set('showCreateModal', true)" class="px-3 py-2 bg-black text-white rounded">
-            + New Project
-        </button>
+        @if(auth()->user()->role !== 'customer')
+            <button wire:click="$set('showCreateModal', true)" class="px-3 py-2 bg-black text-white rounded">
+                + New Project
+            </button>
+        @endif
     </div>
 
     <!-- Search & Filter -->
