@@ -30,6 +30,7 @@ class Projects extends Component
     public $description;
     public $status = 'active';
     public $selectedCustomers = [];
+    public $customerSearchQuery = '';
 
     protected $queryString = ['search', 'filterStatus', 'filterFreelance', 'filterCustomer'];
 
@@ -77,6 +78,11 @@ class Projects extends Component
         } else {
             $this->filterCustomer[] = $id;
         }
+    }
+
+    public function searchCustomers()
+    {
+        // Just trigger re-render with current search query
     }
 
     protected function rules()
@@ -201,7 +207,12 @@ class Projects extends Component
 
         return view('livewire.dashboard.projects', [
             'projects' => $projects,
-            'customers' => $allCustomers,
+            'customers' => $allCustomers->when($this->customerSearchQuery, function($collection) {
+                return $collection->filter(function($customer) {
+                    return stripos($customer->email, $this->customerSearchQuery) !== false || 
+                           stripos($customer->name, $this->customerSearchQuery) !== false;
+                });
+            }),
             'freelancers' => $allFreelancers,
             'filteredFreelancers' => $freelancers,
             'filteredCustomers' => $customers,

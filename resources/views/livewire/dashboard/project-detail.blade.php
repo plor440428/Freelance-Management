@@ -22,7 +22,13 @@
         </div>
         <div class="flex items-center gap-2">
             @if(auth()->user()->role === 'admin' || $project->created_by === auth()->id() || $project->freelance_id === auth()->id())
-                <select wire:change="updateStatus($event.target.value)"
+                <div wire:loading wire:target="updateStatus" class="px-3 py-1.5 rounded-lg text-sm bg-slate-100 text-slate-600">
+                    <svg class="animate-spin h-4 w-4 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                </div>
+                <select wire:change="updateStatus($event.target.value)" wire:loading.remove wire:target="updateStatus"
                     class="px-3 py-1.5 rounded-lg text-sm font-medium border-0 focus:ring-2 focus:ring-black cursor-pointer
                     @if($project->status === 'active') bg-green-100 text-green-800
                     @elseif($project->status === 'on_hold') bg-yellow-100 text-yellow-800
@@ -32,12 +38,24 @@
                     <option value="on_hold" @selected($project->status === 'on_hold')>On Hold</option>
                     <option value="completed" @selected($project->status === 'completed')>Completed</option>
                 </select>
-                <button wire:click="editProject" class="px-3 py-1.5 border border-slate-300 rounded-lg hover:bg-slate-50 text-sm">
-                    Edit
+                <button wire:click="editProject" wire:loading.attr="disabled" class="px-3 py-1.5 border border-slate-300 rounded-lg hover:bg-slate-50 text-sm disabled:opacity-50 flex items-center gap-1">
+                    <span wire:loading.remove wire:target="editProject">Edit</span>
+                    <span wire:loading wire:target="editProject" class="flex items-center gap-1">
+                        <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </span>
                 </button>
                 @if(auth()->user()->role === 'admin' || $project->created_by === auth()->id())
-                    <button wire:click="confirmDelete" class="px-3 py-1.5 border border-red-500 text-red-600 rounded-lg hover:bg-red-50 text-sm">
-                        Delete
+                    <button wire:click="confirmDelete" wire:loading.attr="disabled" class="px-3 py-1.5 border border-red-500 text-red-600 rounded-lg hover:bg-red-50 text-sm disabled:opacity-50 flex items-center gap-1">
+                        <span wire:loading.remove wire:target="confirmDelete">Delete</span>
+                        <span wire:loading wire:target="confirmDelete" class="flex items-center gap-1">
+                            <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                        </span>
                     </button>
                 @endif
             @else
@@ -88,8 +106,15 @@
                 <div class="flex items-center justify-between p-4 border-b">
                     <h4 class="font-semibold">Tasks</h4>
                     @if(auth()->user()->role === 'admin' || $project->created_by === auth()->id() || $project->freelance_id === auth()->id())
-                        <button wire:click="addNewTask" class="px-3 py-1.5 bg-black text-white rounded-lg text-sm hover:bg-slate-800">
-                            + Add Task
+                        <button wire:click="addNewTask" wire:loading.attr="disabled" class="px-3 py-1.5 bg-black text-white rounded-lg text-sm hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                            <span wire:loading.remove wire:target="addNewTask">+ Add Task</span>
+                            <span wire:loading wire:target="addNewTask" class="flex items-center gap-2">
+                                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                </svg>
+                                Loading...
+                            </span>
                         </button>
                     @endif
                 </div>
@@ -120,7 +145,16 @@
                                 <input type="date" wire:model.defer="tasks.0.due_date" class="border px-2 py-1.5 rounded-lg text-sm" />
                             </div>
                             <div class="flex gap-2">
-                                <button wire:click="saveNewTask(0)" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">Save Task</button>
+                                <button wire:click="saveNewTask(0)" wire:loading.attr="disabled" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                                    <span wire:loading.remove wire:target="saveNewTask">Save Task</span>
+                                    <span wire:loading wire:target="saveNewTask" class="flex items-center gap-2">
+                                        <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                        </svg>
+                                        Saving...
+                                    </span>
+                                </button>
                                 <button wire:click="cancelNewTask" class="px-4 py-2 border rounded-lg text-sm hover:bg-slate-50">Cancel</button>
                             </div>
                         </div>
@@ -153,7 +187,16 @@
                                     <input type="date" wire:model.defer="tasks.{{ $loop->index }}.due_date" value="{{ $task->due_date?->format('Y-m-d') }}" class="border px-2 py-1.5 rounded-lg text-sm" />
                                 </div>
                                 <div class="flex gap-2">
-                                    <button wire:click="saveTask({{ $task->id }})" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">Save</button>
+                                    <button wire:click="saveTask({{ $task->id }})" wire:loading.attr="disabled" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                                        <span wire:loading.remove wire:target="saveTask({{ $task->id }})">Save</span>
+                                        <span wire:loading wire:target="saveTask({{ $task->id }})" class="flex items-center gap-2">
+                                            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                            </svg>
+                                            Saving...
+                                        </span>
+                                    </button>
                                     <button wire:click="cancelEdit" class="px-4 py-2 border rounded-lg text-sm hover:bg-slate-50">Cancel</button>
                                 </div>
                             </div>
@@ -400,7 +443,16 @@
                         </div>
 
                         <div class="flex gap-3 pt-4 border-t">
-                            <button type="submit" class="flex-1 px-4 py-2 bg-black text-white rounded">Update</button>
+                            <button type="submit" wire:loading.attr="disabled" class="flex-1 px-4 py-2 bg-black text-white rounded hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                <span wire:loading.remove wire:target="updateProject">Update</span>
+                                <span wire:loading wire:target="updateProject" class="flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                    </svg>
+                                    Updating...
+                                </span>
+                            </button>
                             <button type="button" wire:click="$set('showEditModal', false)" class="flex-1 px-4 py-2 border rounded">Cancel</button>
                         </div>
                     </form>
@@ -423,6 +475,10 @@
                     <form wire:submit.prevent="updateCustomers" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-3">Select Customers</label>
+                            <div class="flex gap-2 mb-3">
+                                <input type="text" wire:model.defer="customerSearchQuery" placeholder="Search by email or name..." class="flex-1 border px-3 py-2 rounded text-sm" />
+                                <button type="button" wire:click="searchCustomers" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium">Search</button>
+                            </div>
                             <div class="space-y-2 border rounded p-3 max-h-64 overflow-y-auto">
                                 @forelse($customers as $customer)
                                     <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-2 rounded">
@@ -434,14 +490,23 @@
                                         </div>
                                     </label>
                                 @empty
-                                    <p class="text-sm text-slate-500 text-center py-4">No customers available</p>
+                                    <p class="text-sm text-slate-500 text-center py-4">No customers found</p>
                                 @endforelse
                             </div>
                             @error('selectedCustomers') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div class="flex gap-3 pt-4 border-t">
-                            <button type="submit" class="flex-1 px-4 py-2 bg-black text-white rounded">Save Changes</button>
+                            <button type="submit" wire:loading.attr="disabled" class="flex-1 px-4 py-2 bg-black text-white rounded hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                <span wire:loading.remove wire:target="updateCustomers">Save Changes</span>
+                                <span wire:loading wire:target="updateCustomers" class="flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                    </svg>
+                                    Saving...
+                                </span>
+                            </button>
                             <button type="button" wire:click="$set('showEditCustomersModal', false)" class="flex-1 px-4 py-2 border rounded">Cancel</button>
                         </div>
                     </form>
@@ -464,6 +529,10 @@
                     <form wire:submit.prevent="updateManagers" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-3">Select Managers (Freelances Only)</label>
+                            <div class="flex gap-2 mb-3">
+                                <input type="text" wire:model.defer="managerSearchQuery" placeholder="Search by email or name..." class="flex-1 border px-3 py-2 rounded text-sm" />
+                                <button type="button" wire:click="searchManagers" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium">Search</button>
+                            </div>
                             <div class="space-y-2 border rounded p-3 max-h-64 overflow-y-auto">
                                 @forelse($availableManagers as $manager)
                                     <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-2 rounded">
@@ -475,14 +544,23 @@
                                         </div>
                                     </label>
                                 @empty
-                                    <p class="text-sm text-slate-500 text-center py-4">No managers available</p>
+                                    <p class="text-sm text-slate-500 text-center py-4">No managers found</p>
                                 @endforelse
                             </div>
                             @error('selectedManagers') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div class="flex gap-3 pt-4 border-t">
-                            <button type="submit" class="flex-1 px-4 py-2 bg-black text-white rounded">Save Changes</button>
+                            <button type="submit" wire:loading.attr="disabled" class="flex-1 px-4 py-2 bg-black text-white rounded hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                <span wire:loading.remove wire:target="updateManagers">Save Changes</span>
+                                <span wire:loading wire:target="updateManagers" class="flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                    </svg>
+                                    Saving...
+                                </span>
+                            </button>
                             <button type="button" wire:click="$set('showEditManagersModal', false)" class="flex-1 px-4 py-2 border rounded">Cancel</button>
                         </div>
                     </form>
@@ -505,6 +583,10 @@
                     <form wire:submit.prevent="updateFreelance" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-3">Select Freelance (Only 1)</label>
+                            <div class="flex gap-2 mb-3">
+                                <input type="text" wire:model.defer="freelanceSearchQuery" placeholder="Search by email or name..." class="flex-1 border px-3 py-2 rounded text-sm" />
+                                <button type="button" wire:click="searchFreelance" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium">Search</button>
+                            </div>
                             <div class="space-y-2 border rounded p-3 max-h-64 overflow-y-auto">
                                 <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-2 rounded">
                                     <input type="radio" wire:model.defer="selectedFreelance" value="" class="rounded" />
@@ -523,14 +605,23 @@
                                         </div>
                                     </label>
                                 @empty
-                                    <p class="text-sm text-slate-500 text-center py-4">No freelances available</p>
+                                    <p class="text-sm text-slate-500 text-center py-4">No freelances found</p>
                                 @endforelse
                             </div>
                             @error('selectedFreelance') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div class="flex gap-3 pt-4 border-t">
-                            <button type="submit" class="flex-1 px-4 py-2 bg-black text-white rounded">Save Changes</button>
+                            <button type="submit" wire:loading.attr="disabled" class="flex-1 px-4 py-2 bg-black text-white rounded hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                <span wire:loading.remove wire:target="updateFreelance">Save Changes</span>
+                                <span wire:loading wire:target="updateFreelance" class="flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                    </svg>
+                                    Saving...
+                                </span>
+                            </button>
                             <button type="button" wire:click="$set('showEditFreelanceModal', false)" class="flex-1 px-4 py-2 border rounded">Cancel</button>
                         </div>
                     </form>

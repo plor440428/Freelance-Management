@@ -258,22 +258,40 @@
 
                         <!-- Customers -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Customers (Optional)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Customers (Optional)</label>
+                            <div class="flex gap-2 mb-2">
+                                <input type="text" wire:model.defer="customerSearchQuery" placeholder="Search by email or name..." class="flex-1 border px-3 py-2 rounded text-sm" />
+                                <button type="button" wire:click="searchCustomers" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium">Search</button>
+                            </div>
                             <div class="mt-2 space-y-2 border rounded p-3 max-h-48 overflow-y-auto">
-                                @foreach($customers as $customer)
+                                @forelse($customers as $customer)
                                     <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-2 rounded">
                                         <input type="checkbox" wire:model.defer="selectedCustomers" value="{{ $customer->id }}" class="rounded" />
                                         <img src="{{ $customer->profile_image_url }}" alt="{{ $customer->name }}" class="w-6 h-6 rounded-full" />
-                                        <span class="text-sm">{{ $customer->name }} ({{ $customer->email }})</span>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium truncate">{{ $customer->name }}</p>
+                                            <p class="text-xs text-slate-500 truncate">{{ $customer->email }}</p>
+                                        </div>
                                     </label>
-                                @endforeach
+                                @empty
+                                    <p class="text-sm text-slate-400 text-center py-4">No customers found</p>
+                                @endforelse
                             </div>
                             @error('selectedCustomers') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <!-- Buttons -->
                         <div class="flex gap-3 pt-4 border-t">
-                            <button type="submit" class="flex-1 px-4 py-2 bg-black text-white rounded">Create</button>
+                            <button type="submit" wire:loading.attr="disabled" class="flex-1 px-4 py-2 bg-black text-white rounded hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                <span wire:loading.remove wire:target="createProject">Create</span>
+                                <span wire:loading wire:target="createProject" class="flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                    </svg>
+                                    Creating...
+                                </span>
+                            </button>
                             <button type="button" wire:click="$set('showCreateModal', false)" class="flex-1 px-4 py-2 border rounded">Cancel</button>
                         </div>
                     </form>

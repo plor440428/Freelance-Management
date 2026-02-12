@@ -43,6 +43,11 @@ class ProjectDetail extends Component
     public $addingNewTask = false;
     public $tasks = [];
 
+    // Search fields for modals
+    public $customerSearchQuery = '';
+    public $managerSearchQuery = '';
+    public $freelanceSearchQuery = '';
+
     public function mount($id)
     {
         $this->projectId = $id;
@@ -112,6 +117,21 @@ class ProjectDetail extends Component
         }
 
         return false;
+    }
+
+    public function searchCustomers()
+    {
+        // Just trigger re-render with current search query
+    }
+
+    public function searchManagers()
+    {
+        // Just trigger re-render with current search query
+    }
+
+    public function searchFreelance()
+    {
+        // Just trigger re-render with current search query
     }
 
     public function editProject()
@@ -649,16 +669,46 @@ class ProjectDetail extends Component
 
     public function render()
     {
-        // Get available managers (freelances only, excluding admin and customers) - only approved
-        $availableManagers = User::where('role', 'freelance')->where('is_approved', true)->get();
+        // Get available managers with search query
+        $availableManagers = User::where('role', 'freelance')
+            ->where('is_approved', true)
+            ->when($this->managerSearchQuery, function($q) {
+                $q->where(function($query) {
+                    $query->where('email', 'like', '%' . $this->managerSearchQuery . '%')
+                          ->orWhere('name', 'like', '%' . $this->managerSearchQuery . '%');
+                });
+            })
+            ->get();
+
+        // Get customers with search query
+        $customers = User::where('role', 'customer')
+            ->where('is_approved', true)
+            ->when($this->customerSearchQuery, function($q) {
+                $q->where(function($query) {
+                    $query->where('email', 'like', '%' . $this->customerSearchQuery . '%')
+                          ->orWhere('name', 'like', '%' . $this->customerSearchQuery . '%');
+                });
+            })
+            ->get();
+
+        // Get freelances with search query
+        $freelances = User::where('role', 'freelance')
+            ->where('is_approved', true)
+            ->when($this->freelanceSearchQuery, function($q) {
+                $q->where(function($query) {
+                    $query->where('email', 'like', '%' . $this->freelanceSearchQuery . '%')
+                          ->orWhere('name', 'like', '%' . $this->freelanceSearchQuery . '%');
+                });
+            })
+            ->get();
 
         // Get task assignees from project managers only
         $taskAssignees = $this->project->managers;
 
         return view('livewire.dashboard.project-detail', [
-            'customers' => User::where('role', 'customer')->where('is_approved', true)->get(),
+            'customers' => $customers,
             'users' => User::whereIn('role', ['admin', 'freelance', 'customer'])->where('is_approved', true)->get(),
-            'freelances' => User::where('role', 'freelance')->where('is_approved', true)->get(),
+            'freelances' => $freelances,
             'availableManagers' => $availableManagers,
             'taskAssignees' => $taskAssignees,
         ]);
