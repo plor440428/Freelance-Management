@@ -6,6 +6,8 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\User;
 use App\Models\PaymentProof;
+use App\Mail\UserApproved;
+use Illuminate\Support\Facades\Mail;
 
 class Approve extends Component
 {
@@ -67,6 +69,13 @@ class Approve extends Component
                 'approved_at' => now(),
             ]);
         }
+
+        $approver = auth()->user();
+        Mail::to($this->selectedUser->email)->send(new UserApproved(
+            $this->selectedUser->fresh('approver'),
+            $this->selectedProof?->fresh('approver'),
+            $approver
+        ));
 
         $this->dispatch('notify', message: 'User approved successfully!', type: 'success');
         $this->closeUserDetail();
