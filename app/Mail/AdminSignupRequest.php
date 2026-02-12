@@ -23,7 +23,7 @@ class AdminSignupRequest extends Mailable
 
     public function build()
     {
-        return $this->subject('New signup request')
+        return $this->subject('มีผู้สมัครสมาชิกใหม่รอการอนุมัติ')
             ->view('emails.admin_signup_request');
     }
 }
