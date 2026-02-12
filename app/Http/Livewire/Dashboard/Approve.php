@@ -53,32 +53,51 @@ class Approve extends Component
             return;
         }
 
-        // Approve user
-        $this->selectedUser->update([
-            'is_approved' => true,
-            'approved_at' => now(),
-            'approved_by' => auth()->id(),
-        ]);
-
-        // Approve payment proof if exists
-        if ($this->selectedProof) {
-            $this->selectedProof->update([
-                'status' => 'approved',
-                'admin_note' => $this->adminNote,
-                'approved_by' => auth()->id(),
+        try {
+            // Approve user
+            $this->selectedUser->update([
+                'is_approved' => true,
                 'approved_at' => now(),
+                'approved_by' => auth()->id(),
             ]);
+
+            // Approve payment proof if exists
+            if ($this->selectedProof) {
+                $this->selectedProof->update([
+                    'status' => 'approved',
+                    'admin_note' => $this->adminNote,
+                    'approved_by' => auth()->id(),
+                    'approved_at' => now(),
+                ]);
+            }
+
+            $approver = auth()->user();
+
+            try {
+                Mail::to($this->selectedUser->email)->send(new UserApproved(
+                    $this->selectedUser->fresh('approver'),
+                    $this->selectedProof?->fresh('approver'),
+                    $approver
+                ));
+            } catch (\Throwable $e) {
+                \Log::error('Approval email failed', [
+                    'user_id' => $this->selectedUser->id,
+                    'error' => $e->getMessage(),
+                ]);
+
+                $this->dispatch('notify', message: 'อนุมัติแล้ว แต่ส่งอีเมลไม่สำเร็จ: ' . $e->getMessage(), type: 'warning');
+            }
+
+            $this->dispatch('notify', message: 'อนุมัติสำเร็จแล้ว', type: 'success');
+            $this->closeUserDetail();
+        } catch (\Throwable $e) {
+            \Log::error('Approve user failed', [
+                'user_id' => $this->selectedUser->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            $this->dispatch('notify', message: 'อนุมัติไม่สำเร็จ: ' . $e->getMessage(), type: 'error');
         }
-
-        $approver = auth()->user();
-        Mail::to($this->selectedUser->email)->send(new UserApproved(
-            $this->selectedUser->fresh('approver'),
-            $this->selectedProof?->fresh('approver'),
-            $approver
-        ));
-
-        $this->dispatch('notify', message: 'User approved successfully!', type: 'success');
-        $this->closeUserDetail();
     }
 
     public function rejectUser()

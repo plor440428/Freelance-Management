@@ -13,3 +13,8 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+button,
+[role="button"] {
+    cursor: pointer;
+}
+

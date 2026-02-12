@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentProof extends Model
 {
@@ -39,6 +40,6 @@ class PaymentProof extends Model
 
     public function getProofFileUrlAttribute()
     {
-        return asset('storage/' . $this->proof_file);
+        return Storage::disk('public')->url($this->proof_file);
     }
 }

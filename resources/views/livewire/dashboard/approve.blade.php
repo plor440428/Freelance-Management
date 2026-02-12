@@ -1,6 +1,14 @@
 <div>
     <h3 class="text-2xl font-bold mb-6">User Approvals</h3>
 
+    <div wire:loading.flex wire:target="filterStatus,previousPage,nextPage,gotoPage,viewUser" class="mb-4 items-center gap-2 text-sm text-slate-600">
+        <svg class="h-4 w-4 animate-spin text-slate-500" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        <span>กำลังโหลดข้อมูล...</span>
+    </div>
+
     <!-- Filter Tabs -->
     <div class="mb-6">
         <div class="flex space-x-2 border-b border-slate-200">
@@ -65,8 +73,8 @@
                             <tr class="hover:bg-slate-50">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center">
-                                        @if($user->profile_image)
-                                            <img src="{{ asset('storage/' . $user->profile_image) }}"
+                                        @if($user->profile_image_path)
+                                            <img src="{{ $user->profile_image_url }}"
                                                  class="w-10 h-10 rounded-full mr-3" alt="{{ $user->name }}">
                                         @else
                                             <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold mr-3">
@@ -173,8 +181,8 @@
                             <tr>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center">
-                                        @if($user->profile_image)
-                                            <img src="{{ asset('storage/' . $user->profile_image) }}"
+                                        @if($user->profile_image_path)
+                                            <img src="{{ $user->profile_image_url }}"
                                                  class="w-8 h-8 rounded-full mr-2" alt="{{ $user->name }}">
                                         @else
                                             <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-semibold mr-2">
@@ -257,8 +265,8 @@
                             <tr>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center">
-                                        @if($user->profile_image)
-                                            <img src="{{ asset('storage/' . $user->profile_image) }}"
+                                        @if($user->profile_image_path)
+                                            <img src="{{ $user->profile_image_url }}"
                                                  class="w-8 h-8 rounded-full mr-2" alt="{{ $user->name }}">
                                         @else
                                             <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-semibold mr-2">
@@ -337,8 +345,8 @@
                         <tr class="hover:bg-slate-50">
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
-                                    @if($user->profile_image)
-                                        <img src="{{ asset('storage/' . $user->profile_image) }}"
+                                    @if($user->profile_image_path)
+                                        <img src="{{ $user->profile_image_url }}"
                                              class="w-8 h-8 rounded-full mr-2" alt="{{ $user->name }}">
                                     @else
                                         <div class="w-8 h-8 rounded-full bg-slate-400 flex items-center justify-center text-white text-xs font-semibold mr-2">
@@ -391,8 +399,17 @@
 
     <!-- User Detail Modal -->
     @if($showUserDetail && $selectedUser)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" wire:click="closeUserDetail">
-            <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-auto m-4" wire:click.stop>
+        <div class="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50" wire:click="closeUserDetail">
+            <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-auto m-4 relative" wire:click.stop>
+                <div wire:loading.flex wire:target="approveUser,rejectAndDelete,rejectAndRequestRevision" class="absolute inset-0 z-10 bg-white/70 items-center justify-center">
+                    <div class="flex items-center gap-2 text-sm text-slate-700">
+                        <svg class="h-5 w-5 animate-spin text-slate-600" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                        <span>กำลังบันทึก...</span>
+                    </div>
+                </div>
                 <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
                     <h3 class="text-xl font-bold">Review Registration</h3>
                     <button wire:click="closeUserDetail" class="text-slate-400 hover:text-slate-600">
@@ -406,8 +423,8 @@
                     <!-- User Info -->
                     <div class="mb-6">
                         <div class="flex items-center mb-4">
-                            @if($selectedUser->profile_image)
-                                <img src="{{ asset('storage/' . $selectedUser->profile_image) }}"
+                            @if($selectedUser->profile_image_path)
+                                <img src="{{ $selectedUser->profile_image_url }}"
                                      class="w-20 h-20 rounded-full mr-4" alt="{{ $selectedUser->name }}">
                             @else
                                 <div class="w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl font-bold mr-4">
@@ -510,8 +527,11 @@
                                      x-transition:leave-end="transform opacity-0 scale-95"
                                      class="absolute right-0 bottom-full mb-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-10"
                                      style="display: none;">
-                                    <button wire:click="rejectAndDelete"
+                                        <button wire:click="rejectAndDelete"
                                             @click="open = false"
+                                            wire:loading.attr="disabled"
+                                            wire:loading.class="opacity-60 cursor-not-allowed"
+                                            wire:target="rejectAndDelete"
                                             class="w-full text-left px-4 py-3 hover:bg-red-50 text-red-700 flex items-start space-x-2">
                                         <svg class="w-5 h-5 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -519,10 +539,14 @@
                                         <div>
                                             <div class="font-semibold">ไม่อนุมัติและลบบัญชี</div>
                                             <div class="text-xs text-slate-500">ลบบัญชีนี้ออกจากระบบถาวร</div>
+                                            <div wire:loading wire:target="rejectAndDelete" class="text-xs text-red-500">กำลังดำเนินการ...</div>
                                         </div>
                                     </button>
                                     <button wire:click="rejectAndRequestRevision"
                                             @click="open = false"
+                                            wire:loading.attr="disabled"
+                                            wire:loading.class="opacity-60 cursor-not-allowed"
+                                            wire:target="rejectAndRequestRevision"
                                             class="w-full text-left px-4 py-3 hover:bg-yellow-50 text-yellow-700 flex items-start space-x-2">
                                         <svg class="w-5 h-5 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -530,17 +554,22 @@
                                         <div>
                                             <div class="font-semibold">ไม่อนุมัติและส่งให้แก้ไข</div>
                                             <div class="text-xs text-slate-500">ส่งอีเมลให้ผู้ใช้แก้ไขข้อมูล</div>
+                                            <div wire:loading wire:target="rejectAndRequestRevision" class="text-xs text-yellow-600">กำลังดำเนินการ...</div>
                                         </div>
                                     </button>
                                 </div>
                             </div>
 
                             <button wire:click="approveUser"
+                                    wire:loading.attr="disabled"
+                                    wire:loading.class="opacity-60 cursor-not-allowed"
+                                    wire:target="approveUser"
                                     class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center space-x-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                <span>อนุมัติ</span>
+                                <span wire:loading.remove wire:target="approveUser">อนุมัติ</span>
+                                <span wire:loading wire:target="approveUser">กำลังอนุมัติ...</span>
                             </button>
                         </div>
                     @endif

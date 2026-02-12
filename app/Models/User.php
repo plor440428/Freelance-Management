@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -79,7 +80,7 @@ class User extends Authenticatable
     public function getProfileImageUrlAttribute()
     {
         if ($this->profile_image_path) {
-            return asset('storage/' . $this->profile_image_path);
+            return Storage::disk('public')->url($this->profile_image_path);
         }
         return 'https://i.pravatar.cc/40?u=' . $this->id;
     }
