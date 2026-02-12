@@ -45,203 +45,241 @@
         </div>
     </div>
 
-    <div class="min-h-screen bg-gray-400 rounded-xl flex items-center justify-center py-12 px-12 sm:px-6 lg:px-8">
-        <div class="max-w-6xl w-full bg-white rounded-lg shadow-md overflow-hidden grid grid-cols-1 md:grid-cols-2">
-            <!-- Illustration / left column (hidden on small screens) -->
-            <div class="hidden md:flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-700 p-8">
-                <div class="text-center text-white px-6">
-                    <h3 class="text-3xl font-bold mb-2">Join Us</h3>
-                    <p class="text-gray-200">Create an account to start managing your projects and tasks.</p>
+    <div class="min-h-screen flex items-center justify-center px-6 py-12">
+        <div class="w-full max-w-5xl">
+            <div class="grid grid-cols-1 md:grid-cols-5 rounded-2xl overflow-hidden shadow-2xl border border-slate-200 bg-white">
+                <div class="md:col-span-2 p-6 sm:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white">
+                    <div class="text-sm uppercase tracking-[0.2em] text-slate-300">Create</div>
+                    <h2 class="mt-4 text-2xl font-bold leading-tight">สมัครสมาชิก
+                        <span class="block text-slate-300 text-base font-medium mt-2">เริ่มต้นจัดการงานและโปรเจกต์อย่างเป็นระบบ</span>
+                    </h2>
+                    <div class="mt-6 text-sm text-slate-200 space-y-2">
+                        <p>1) กรอกข้อมูลผู้ใช้ให้ครบถ้วน</p>
+                        <p>2) อัปโหลดหลักฐานการโอน</p>
+                        <p>3) รอการอนุมัติจากผู้ดูแลระบบ</p>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Form column -->
-            <div class="p-8 sm:p-10">
-                <div class="max-w-2xl mx-auto">
-                    <div class="text-center mb-6">
-                        <h2 class="text-2xl font-extrabold text-gray-900">Create your account</h2>
-                        <p class="mt-2 text-sm text-gray-600">Fill in the details below to get started</p>
+                <div class="md:col-span-3 p-6 sm:p-8">
+                    <div class="mb-6">
+                        <h3 class="text-xl font-semibold text-slate-900">สร้างบัญชีใหม่</h3>
+                        <p class="mt-2 text-sm text-slate-600">กรอกข้อมูลให้ถูกต้องเพื่อความรวดเร็วในการอนุมัติ</p>
                     </div>
 
                     <form wire:submit.prevent="register" class="space-y-6" novalidate>
-                        <!-- Profile Picture Upload - Moved to top -->
-                        <div>
-                            <label for="profile_image" class="block text-sm font-medium text-gray-700 mb-2">Profile Picture (Optional)</label>
-                            <div class="flex gap-2">
+                        <div class="rounded-xl border border-slate-200 p-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-semibold text-slate-900">ข้อมูลผู้ใช้</h4>
+                                <span class="text-xs text-slate-500">จำเป็นสำหรับการใช้งาน</span>
+                            </div>
+
+                            <div>
+                                <label for="profile_image" class="block text-sm font-medium text-slate-700 mb-2">รูปโปรไฟล์ (ไม่บังคับ)</label>
+                                <div class="flex gap-2">
                                 <input
                                     id="profile_image"
                                     type="file"
                                     wire:model.live="profile_image"
                                     accept="image/*"
                                     class="hidden" />
-                                <button type="button" onclick="document.getElementById('profile_image').click()" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent">
+                                <button type="button" onclick="document.getElementById('profile_image').click()" class="flex-1 px-4 py-3 border border-slate-300 rounded-lg shadow-sm text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent">
                                     {{ $profile_image ? 'Change Profile Picture' : 'Choose Profile Picture' }}
                                 </button>
                             </div>
                             @error('profile_image') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
 
                             @if ($profile_image)
-                                <div class="mt-4 text-center">
-                                    <p class="text-sm text-gray-600 mb-2">Preview:</p>
-                                    <img src="{{ $profile_image->temporaryUrl() }}" alt="Profile Preview" class="w-24 h-24 rounded-full object-cover mx-auto border-2 border-gray-300 shadow-sm">
+                                <div class="mt-4 flex items-center gap-4">
+                                    <img src="{{ $profile_image->temporaryUrl() }}" alt="Profile Preview" class="w-16 h-16 rounded-full object-cover border border-slate-200 shadow-sm">
+                                    <div class="text-sm text-slate-600">Preview รูปโปรไฟล์</div>
                                 </div>
                             @endif
                         </div>
 
-                        <div>
-                            <label for="name" class="sr-only">Full Name</label>
-                            <input
-                                id="name"
-                                type="text"
-                                wire:model.defer="name"
-                                autocomplete="name"
-                                placeholder="Full name"
-                                class="appearance-none block w-full px-4 py-3 border {{ $errors->has('name') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent" />
-                            @error('name')
-                                <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                    <div class="flex items-start">
-                                        <svg class="h-5 w-5 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                                        </svg>
-                                        <p class="ml-2 text-sm text-red-700 font-medium">{{ $message }}</p>
-                                    </div>
-                                </div>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="email" class="sr-only">Email</label>
-                            <input
-                                id="email"
-                                type="email"
-                                wire:model.blur="email"
-                                autocomplete="username"
-                                placeholder="you@example.com"
-                                class="appearance-none block w-full px-4 py-3 border {{ $errors->has('email') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent" />
-                            @error('email')
-                                <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                    <div class="flex items-start">
-                                        <svg class="h-5 w-5 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                                        </svg>
-                                        <p class="ml-2 text-sm text-red-700 font-medium">{{ $message }}</p>
-                                    </div>
-                                </div>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="password" class="sr-only">Password</label>
-                            <div class="relative">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label for="name" class="text-sm font-medium text-slate-700">ชื่อ-นามสกุล</label>
                                 <input
-                                    id="password"
-                                    type="password"
-                                    wire:model.defer="password"
-                                    autocomplete="new-password"
-                                    placeholder="Create a strong password (min. 6 characters)"
-                                    class="appearance-none block w-full px-4 py-3 pr-12 border {{ $errors->has('password') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent" />
+                                    id="name"
+                                    type="text"
+                                    wire:model.defer="name"
+                                    autocomplete="name"
+                                    placeholder="Full name"
+                                    class="mt-2 appearance-none block w-full px-4 py-3 border {{ $errors->has('name') ? 'border-red-500 bg-red-50' : 'border-slate-300' }} rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent" />
+                                @error('name')
+                                    <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                        <div class="flex items-start">
+                                            <svg class="h-5 w-5 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <p class="ml-2 text-sm text-red-700 font-medium">{{ $message }}</p>
+                                        </div>
+                                    </div>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="email" class="text-sm font-medium text-slate-700">อีเมล</label>
+                                <input
+                                    id="email"
+                                    type="email"
+                                    wire:model.blur="email"
+                                    autocomplete="username"
+                                    placeholder="you@example.com"
+                                    class="mt-2 appearance-none block w-full px-4 py-3 border {{ $errors->has('email') ? 'border-red-500 bg-red-50' : 'border-slate-300' }} rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent" />
+                                @error('email')
+                                    <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                        <div class="flex items-start">
+                                            <svg class="h-5 w-5 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <p class="ml-2 text-sm text-red-700 font-medium">{{ $message }}</p>
+                                        </div>
+                                    </div>
+                                @enderror
+                            </div>
+                        </div>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-200 p-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-semibold text-slate-900">ตั้งรหัสผ่าน</h4>
+                                <span class="text-xs text-slate-500">ขั้นต่ำ 6 ตัวอักษร</span>
+                            </div>
+                            <div>
+                                <label for="password" class="text-sm font-medium text-slate-700">รหัสผ่าน</label>
+                                <div class="relative">
+                                    <input
+                                        id="password"
+                                        type="password"
+                                        wire:model.defer="password"
+                                        autocomplete="new-password"
+                                        placeholder="Create a strong password"
+                                        class="mt-2 appearance-none block w-full px-4 py-3 pr-12 border {{ $errors->has('password') ? 'border-red-500 bg-red-50' : 'border-slate-300' }} rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent" />
                                 <button
                                     type="button"
                                     onclick="togglePassword('password', 'eyePassword')"
-                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700">
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-700">
                                     <svg id="eyePassword" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                     </svg>
                                 </button>
+                                </div>
+                                @error('password')
+                                    <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                        <div class="flex items-start">
+                                            <svg class="h-5 w-5 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <p class="ml-2 text-sm text-red-700 font-medium">{{ $message }}</p>
+                                        </div>
+                                    </div>
+                                @enderror
                             </div>
-                            @error('password')
-                                <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                    <div class="flex items-start">
-                                        <svg class="h-5 w-5 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+
+                            <div class="mt-4">
+                                <label for="password_confirmation" class="text-sm font-medium text-slate-700">ยืนยันรหัสผ่าน</label>
+                                <div class="relative">
+                                    <input
+                                        id="password_confirmation"
+                                        type="password"
+                                        wire:model.defer="password_confirmation"
+                                        autocomplete="new-password"
+                                        placeholder="Confirm your password"
+                                        class="mt-2 appearance-none block w-full px-4 py-3 pr-12 border {{ $errors->has('password') ? 'border-red-500 bg-red-50' : 'border-slate-300' }} rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent" />
+                                    <button
+                                        type="button"
+                                        onclick="togglePassword('password_confirmation', 'eyePasswordConfirm')"
+                                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-700">
+                                        <svg id="eyePasswordConfirm" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                         </svg>
-                                        <p class="ml-2 text-sm text-red-700 font-medium">{{ $message }}</p>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-200 p-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-semibold text-slate-900">แพ็กเกจและการชำระเงิน</h4>
+                                <span class="text-xs text-slate-500">ชำระครั้งเดียว</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="role" class="block text-sm font-medium text-slate-700 mb-2">ประเภทบัญชี</label>
+                                    <select
+                                        id="role"
+                                        wire:model.live="role"
+                                        class="appearance-none block w-full px-4 py-3 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent">
+                                        <option value="customer">Customer</option>
+                                        <option value="freelance">Freelancer</option>
+                                    </select>
+                                    @error('role') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Payment Plan</label>
+                                    <div class="p-4 border border-slate-200 bg-slate-50 rounded-lg">
+                                        <div class="font-semibold text-slate-900">Lifetime Access</div>
+                                        <div class="text-3xl font-bold text-slate-900 mt-2">฿{{ number_format($this->amount, 0) }}</div>
+                                        <div class="text-xs text-slate-600 mt-1">Pay once, use forever</div>
                                     </div>
                                 </div>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="password_confirmation" class="sr-only">Confirm Password</label>
-                            <div class="relative">
-                                <input
-                                    id="password_confirmation"
-                                    type="password"
-                                    wire:model.defer="password_confirmation"
-                                    autocomplete="new-password"
-                                    placeholder="Confirm your password"
-                                    class="appearance-none block w-full px-4 py-3 pr-12 border {{ $errors->has('password') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent" />
-                                <button
-                                    type="button"
-                                    onclick="togglePassword('password_confirmation', 'eyePasswordConfirm')"
-                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700">
-                                    <svg id="eyePasswordConfirm" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </button>
                             </div>
-                        </div>
 
-                        <div>
-                            <label for="role" class="block text-sm font-medium text-gray-700 mb-2">Account Type</label>
-                            <select
-                                id="role"
-                                wire:model.live="role"
-                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent">
-                                <option value="customer">Customer</option>
-                                <option value="freelance">Freelancer</option>
-                            </select>
-                            @error('role') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
-                        </div>
+                            <div class="mt-5">
+                                <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-4">
+                                    <div class="flex items-start gap-3">
+                                        <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <div class="text-sm text-emerald-900">
+                                            <p class="font-semibold mb-2">ข้อมูลบัญชีสำหรับโอนเงิน</p>
+                                            <div class="space-y-1">
+                                                <p><strong>ธนาคาร:</strong> กสิกรไทย (KBANK)</p>
+                                                <p><strong>ชื่อบัญชี:</strong> บริษัท ฟรีแลนซ์แมน จำกัด</p>
+                                                <p><strong>เลขที่บัญชี:</strong> 123-4-56789-0</p>
+                                                <p><strong>ประเภทบัญชี:</strong> ออมทรัพย์</p>
+                                                <p><strong>จำนวนเงิน:</strong> ฿{{ number_format($this->amount, 0) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <!-- Pricing Display -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Plan</label>
-                            <div class="p-4 border-2 border-black bg-slate-50 rounded-lg">
-                                <div class="font-semibold text-gray-900">One-time Payment - Lifetime Access</div>
-                                <div class="text-3xl font-bold text-black mt-2">฿{{ number_format($this->amount, 0) }}</div>
-                                <div class="text-sm text-gray-600 mt-1">Pay once, use forever</div>
-                            </div>
-                        </div>
-
-                        <!-- Payment Slip Upload -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Payment Slip <span class="text-red-600">*</span>
-                            </label>
-                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
-                                <p class="text-sm text-blue-800">
-                                    <strong>Payment Required:</strong> Please transfer ฿{{ number_format($this->amount, 0) }} and upload your payment slip below (max 5MB). Your account will be activated after admin approval.
-                                </p>
-                            </div>
-                            <div class="flex gap-2">
+                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                    อัปโหลดสลิปการโอนเงิน <span class="text-red-600">*</span>
+                                </label>
+                                <div class="flex gap-2">
                                 <input
                                     id="payment_slip"
                                     type="file"
                                     wire:model.live="payment_slip"
-                                    accept="image/*"
+                                    accept="image/*,application/pdf"
                                     class="hidden" />
-                                <button type="button" onclick="document.getElementById('payment_slip').click()" class="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg shadow-sm text-gray-700 hover:border-black hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent">
-                                    {{ $payment_slip ? 'Change Slip' : 'Upload Payment Slip' }}
+                                    <button type="button" onclick="document.getElementById('payment_slip').click()" class="flex-1 px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg shadow-sm text-slate-700 hover:border-slate-900 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent">
+                                    {{ $payment_slip ? 'เปลี่ยนสลิป' : 'อัปโหลดสลิปการโอนเงิน' }}
                                 </button>
-                            </div>
-                            @error('payment_slip') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
-
-                            @if ($payment_slip)
-                                <div class="mt-4 text-center">
-                                    <p class="text-sm text-gray-600 mb-2">Payment Slip Preview:</p>
-                                    <img src="{{ $payment_slip->temporaryUrl() }}" alt="Slip Preview" class="max-w-xs mx-auto rounded-lg border-2 border-gray-200 shadow">
                                 </div>
-                            @endif
+                                <p class="mt-2 text-xs text-slate-500">รองรับไฟล์รูปภาพหรือ PDF ขนาดไม่เกิน 5MB</p>
+                                @error('payment_slip') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+
+                                @if ($payment_slip)
+                                    <div class="mt-4 flex items-center gap-4">
+                                        <img src="{{ $payment_slip->temporaryUrl() }}" alt="Slip Preview" class="w-28 rounded-lg border border-slate-200 shadow">
+                                        <div class="text-sm text-slate-600">ตรวจสอบความชัดเจนของสลิปก่อนส่ง</div>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
 
-                        <div>
+                        <div class="flex flex-col sm:flex-row items-center gap-3">
                             <button
                                 type="submit"
                                 wire:loading.attr="disabled"
-                                class="w-full cursor-pointer flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-black hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-black">
+                                class="w-full sm:w-auto cursor-pointer flex justify-center items-center py-3 px-6 rounded-lg text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900">
                                 <span wire:loading.remove>Create Account</span>
                                 <div wire:loading class="inline-flex flex-row items-center justify-center">
                                     <svg class="animate-spin h-5 w-5 text-white inline-flex items-center justify-center" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -253,11 +291,7 @@
                             </button>
                         </div>
 
-                        <div class="text-center">
-                            <p class="text-sm text-gray-600">
-                                Already have an account?
-                                <a href="{{ route('login') }}" class="font-medium text-black hover:underline">Sign in here</a>
-                            </p>
+                            <a href="{{ route('login') }}" class="text-sm font-medium text-slate-700 hover:text-slate-900 hover:underline">มีบัญชีแล้ว? เข้าสู่ระบบ</a>
                         </div>
                     </form>
                 </div>
