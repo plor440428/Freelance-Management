@@ -12,6 +12,7 @@
 </head>
 <body>
     <div class="w-full">
+        @livewire('toast')
         @yield('content')
     </div>
 

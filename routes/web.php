@@ -21,6 +21,16 @@ Route::get('/register', Register::class)
     ->name('register')
     ->middleware('guest');
 
+Route::view('/forgot-password', 'auth.forgot-password')
+    ->name('password.request')
+    ->middleware('guest');
+
+Route::get('/reset-password/{token}', function ($token) {
+    return view('auth.reset-password', ['token' => $token]);
+})
+    ->name('password.reset')
+    ->middleware('guest');
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'approved'])->name('dashboard');

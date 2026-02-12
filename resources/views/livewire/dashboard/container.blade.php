@@ -1,6 +1,5 @@
 <div>
     <div class="min-h-screen bg-gray-100">
-    @livewire('toast')
     <div class="flex h-screen">
         <!-- Sidebar -->
         <aside id="sidebar" class="fixed inset-y-0 left-0 z-20 w-64 transform -translate-x-0 md:translate-x-0 transition-transform duration-200 bg-slate-900 text-white shadow-lg">
