@@ -6,10 +6,12 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\File;
+use App\Mail\ProjectStatusUpdatedNotification;
 
 class ProjectDetail extends Component
 {
@@ -175,7 +177,12 @@ class ProjectDetail extends Component
                 return;
             }
 
+            $oldStatus = $this->project->status;
             $this->project->update(['status' => $newStatus]);
+
+            if ($oldStatus !== $newStatus) {
+                $this->sendStatusUpdateEmails($oldStatus, $newStatus);
+            }
             $this->dispatch('notify', message: 'Status updated successfully!', type: 'success');
             $this->loadProject();
         } catch (\Exception $e) {
@@ -198,17 +205,36 @@ class ProjectDetail extends Component
                 return;
             }
 
+            $oldStatus = $this->project->status;
             $this->project->update([
                 'name' => $this->name,
                 'description' => $this->description,
                 'status' => $this->status,
             ]);
 
+            if ($oldStatus !== $this->status) {
+                $this->sendStatusUpdateEmails($oldStatus, $this->status);
+            }
+
             $this->dispatch('notify', message: 'Project details updated successfully!', type: 'success');
             $this->showEditModal = false;
             $this->loadProject();
         } catch (\Exception $e) {
             $this->dispatch('notify', message: 'Failed to update project. ' . $e->getMessage(), type: 'error');
+        }
+    }
+
+    protected function sendStatusUpdateEmails(string $oldStatus, string $newStatus)
+    {
+        $project = $this->project->loadMissing('customers');
+        foreach ($project->customers as $customer) {
+            try {
+                Mail::to($customer->email)->send(
+                    new ProjectStatusUpdatedNotification($project, $customer, $oldStatus, $newStatus)
+                );
+            } catch (\Throwable $mailException) {
+                \Log::error('Failed to send project status update email to ' . $customer->email . ': ' . $mailException->getMessage());
+            }
         }
     }
 
