@@ -27,6 +27,9 @@ class User extends Authenticatable
         'is_approved',
         'approved_at',
         'approved_by',
+        'rejection_reason',
+        'rejected_at',
+        'rejected_by',
     ];
 
     /**
@@ -50,6 +53,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'approved_at' => 'datetime',
+            'rejected_at' => 'datetime',
             'is_approved' => 'boolean',
         ];
     }
@@ -62,6 +66,16 @@ class User extends Authenticatable
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function rejector()
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    public function approvalLogs()
+    {
+        return $this->hasMany(ApprovalLog::class)->latest();
     }
 
     public function files()

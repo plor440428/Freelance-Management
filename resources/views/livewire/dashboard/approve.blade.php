@@ -300,12 +300,12 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-sm text-slate-600">
-                                    <span title="{{ $proof?->admin_note ?? '-' }}" class="truncate block">
-                                        {{ $proof?->admin_note ?? '-' }}
+                                    <span title="{{ $user->rejection_reason ?? '-' }}" class="truncate block">
+                                        {{ $user->rejection_reason ?? '-' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-slate-600">
-                                    {{ $proof?->approved_at?->format('M d, Y H:i') ?? '-' }}
+                                    {{ $user->rejected_at?->format('M d, Y H:i') ?? '-' }}
                                 </td>
                             </tr>
                         @endforeach
@@ -368,6 +368,8 @@
                             <td class="px-6 py-4 text-sm">
                                 @if($user->is_approved)
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Approved</span>
+                                @elseif($user->rejection_reason)
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700">Rejected</span>
                                 @else
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700">Pending</span>
                                 @endif
@@ -376,7 +378,7 @@
                                 {{ $user->created_at->diffForHumans() }}
                             </td>
                             <td class="px-6 py-4">
-                                @if(!$user->is_approved)
+                                @if(!$user->is_approved && !$user->rejection_reason)
                                     <button wire:click="viewUser({{ $user->id }})"
                                             class="text-blue-600 hover:text-blue-800 font-medium text-sm">
                                         Review
@@ -492,11 +494,14 @@
                     <!-- Admin Note Input (for pending only) -->
                     @if($selectedProof && $selectedProof->status === 'pending')
                         <div class="mb-6">
-                            <label class="block font-semibold mb-2">Admin Note (Optional)</label>
+                            <label class="block font-semibold mb-2">เหตุผล/หมายเหตุจากแอดมิน</label>
                             <textarea wire:model="adminNote"
                                       rows="3"
                                       class="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                      placeholder="Add a note for this approval/rejection..."></textarea>
+                                      placeholder="กรอกเหตุผล (จำเป็นเมื่อไม่อนุมัติ)"></textarea>
+                            @error('adminNote')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <!-- Action Buttons -->
@@ -506,59 +511,17 @@
                                 Cancel
                             </button>
 
-                            <!-- Reject Dropdown -->
-                            <div x-data="{ open: false }" class="relative">
-                                <button @click="open = !open"
-                                        type="button"
-                                        class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium flex items-center space-x-2">
-                                    <span>ไม่อนุมัติ</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </button>
-
-                                <div x-show="open"
-                                     @click.away="open = false"
-                                     x-transition:enter="transition ease-out duration-100"
-                                     x-transition:enter-start="transform opacity-0 scale-95"
-                                     x-transition:enter-end="transform opacity-100 scale-100"
-                                     x-transition:leave="transition ease-in duration-75"
-                                     x-transition:leave-start="transform opacity-100 scale-100"
-                                     x-transition:leave-end="transform opacity-0 scale-95"
-                                     class="absolute right-0 bottom-full mb-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-10"
-                                     style="display: none;">
-                                        <button wire:click="rejectAndDelete"
-                                            @click="open = false"
-                                            wire:loading.attr="disabled"
-                                            wire:loading.class="opacity-60 cursor-not-allowed"
-                                            wire:target="rejectAndDelete"
-                                            class="w-full text-left px-4 py-3 hover:bg-red-50 text-red-700 flex items-start space-x-2">
-                                        <svg class="w-5 h-5 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                        </svg>
-                                        <div>
-                                            <div class="font-semibold">ไม่อนุมัติและลบบัญชี</div>
-                                            <div class="text-xs text-slate-500">ลบบัญชีนี้ออกจากระบบถาวร</div>
-                                            <div wire:loading wire:target="rejectAndDelete" class="text-xs text-red-500">กำลังดำเนินการ...</div>
-                                        </div>
-                                    </button>
-                                    <button wire:click="rejectAndRequestRevision"
-                                            @click="open = false"
-                                            wire:loading.attr="disabled"
-                                            wire:loading.class="opacity-60 cursor-not-allowed"
-                                            wire:target="rejectAndRequestRevision"
-                                            class="w-full text-left px-4 py-3 hover:bg-yellow-50 text-yellow-700 flex items-start space-x-2">
-                                        <svg class="w-5 h-5 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                        </svg>
-                                        <div>
-                                            <div class="font-semibold">ไม่อนุมัติและส่งให้แก้ไข</div>
-                                            <div class="text-xs text-slate-500">ส่งอีเมลให้ผู้ใช้แก้ไขข้อมูล</div>
-                                            <div wire:loading wire:target="rejectAndRequestRevision" class="text-xs text-yellow-600">กำลังดำเนินการ...</div>
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
+                            <button wire:click="rejectUser"
+                                    wire:loading.attr="disabled"
+                                    wire:loading.class="opacity-60 cursor-not-allowed"
+                                    wire:target="rejectUser"
+                                    class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium flex items-center space-x-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                                <span wire:loading.remove wire:target="rejectUser">ไม่อนุมัติ</span>
+                                <span wire:loading wire:target="rejectUser">กำลังบันทึก...</span>
+                            </button>
 
                             <button wire:click="approveUser"
                                     wire:loading.attr="disabled"

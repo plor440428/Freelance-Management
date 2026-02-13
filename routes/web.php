@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Livewire\TestComponent;
 use App\Http\Livewire\Auth\Register;
+use App\Http\Livewire\Auth\RegistrationRevision;
 use App\Http\Livewire\Dashboard\ProjectDetail;
 
 Route::get('/', function () {
@@ -20,6 +21,10 @@ Route::view('/login', 'auth.login')
 Route::get('/register', Register::class)
     ->name('register')
     ->middleware('guest');
+
+Route::get('/register/revision/{user}', RegistrationRevision::class)
+    ->name('registration.revision')
+    ->middleware('signed');
 
 Route::view('/forgot-password', 'auth.forgot-password')
     ->name('password.request')

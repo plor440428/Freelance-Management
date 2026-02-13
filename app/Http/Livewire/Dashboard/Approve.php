@@ -5,9 +5,12 @@ namespace App\Http\Livewire\Dashboard;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\User;
+use App\Models\ApprovalLog;
 use App\Models\PaymentProof;
 use App\Mail\UserApproved;
+use App\Mail\UserRevisionRequested;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 class Approve extends Component
 {
@@ -59,6 +62,9 @@ class Approve extends Component
                 'is_approved' => true,
                 'approved_at' => now(),
                 'approved_by' => auth()->id(),
+                'rejection_reason' => null,
+                'rejected_at' => null,
+                'rejected_by' => null,
             ]);
 
             // Approve payment proof if exists
@@ -70,6 +76,16 @@ class Approve extends Component
                     'approved_at' => now(),
                 ]);
             }
+
+            ApprovalLog::create([
+                'user_id' => $this->selectedUser->id,
+                'action' => 'approved',
+                'reason' => $this->adminNote,
+                'acted_by' => auth()->id(),
+                'meta' => [
+                    'payment_proof_id' => $this->selectedProof?->id,
+                ],
+            ]);
 
             $approver = auth()->user();
 
@@ -106,18 +122,63 @@ class Approve extends Component
             return;
         }
 
+        $validated = $this->validate([
+            'adminNote' => 'required|string|min:5|max:2000',
+        ], [
+            'adminNote.required' => 'กรุณาระบุเหตุผลที่ไม่อนุมัติ',
+            'adminNote.min' => 'เหตุผลต้องมีอย่างน้อย 5 ตัวอักษร',
+        ]);
+
+        $reason = trim($validated['adminNote']);
+
+        $revisionUrl = URL::temporarySignedRoute(
+            'registration.revision',
+            now()->addDays(7),
+            ['user' => $this->selectedUser->id]
+        );
+
         // Reject payment proof if exists
         if ($this->selectedProof) {
             $this->selectedProof->update([
                 'status' => 'rejected',
-                'admin_note' => $this->adminNote,
+                'admin_note' => $reason,
                 'approved_by' => auth()->id(),
                 'approved_at' => now(),
             ]);
         }
 
-        // Keep user unapproved
-        $this->dispatch('notify', message: 'User rejected.', type: 'info');
+        // Keep user unapproved for revision
+        $this->selectedUser->update([
+            'is_approved' => false,
+            'approved_at' => null,
+            'approved_by' => null,
+            'rejection_reason' => $reason,
+            'rejected_at' => now(),
+            'rejected_by' => auth()->id(),
+        ]);
+
+        ApprovalLog::create([
+            'user_id' => $this->selectedUser->id,
+            'action' => 'rejected_revision_requested',
+            'reason' => $reason,
+            'acted_by' => auth()->id(),
+            'meta' => [
+                'payment_proof_id' => $this->selectedProof?->id,
+            ],
+        ]);
+
+        try {
+            Mail::to($this->selectedUser->email)->send(
+                new UserRevisionRequested($this->selectedUser, $reason, $revisionUrl)
+            );
+        } catch (\Throwable $e) {
+            \Log::error('Revision request email failed', [
+                'user_id' => $this->selectedUser->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        $this->dispatch('notify', message: 'ส่งคำขอแก้ไขไปยังผู้ใช้แล้ว', type: 'warning');
         $this->closeUserDetail();
     }
 
@@ -126,6 +187,20 @@ class Approve extends Component
         if (!$this->selectedUser) {
             return;
         }
+
+        $reason = trim((string) $this->adminNote) !== ''
+            ? trim((string) $this->adminNote)
+            : 'ไม่อนุมัติและลบบัญชี';
+
+        ApprovalLog::create([
+            'user_id' => $this->selectedUser->id,
+            'action' => 'rejected_deleted',
+            'reason' => $reason,
+            'acted_by' => auth()->id(),
+            'meta' => [
+                'payment_proof_id' => $this->selectedProof?->id,
+            ],
+        ]);
 
         $userName = $this->selectedUser->name;
 
@@ -152,31 +227,7 @@ class Approve extends Component
 
     public function rejectAndRequestRevision()
     {
-        if (!$this->selectedUser) {
-            return;
-        }
-
-        // Update payment proof status to rejected with note
-        if ($this->selectedProof) {
-            $this->selectedProof->update([
-                'status' => 'rejected',
-                'admin_note' => $this->adminNote ?: 'กรุณาตรวจสอบและแก้ไขข้อมูลให้ถูกต้อง',
-                'approved_by' => auth()->id(),
-                'approved_at' => now(),
-            ]);
-        }
-
-        // Keep user unapproved for revision
-        $this->selectedUser->update([
-            'is_approved' => false,
-            'approved_at' => null,
-        ]);
-
-        // TODO: Send email notification to user
-        // Mail::to($this->selectedUser->email)->send(new RevisionRequestMail($this->selectedUser, $this->adminNote));
-
-        $this->dispatch('notify', message: 'ส่งคำขอแก้ไขไปยังผู้ใช้แล้ว', type: 'warning');
-        $this->closeUserDetail();
+        $this->rejectUser();
     }
 
     public function render()
@@ -194,6 +245,7 @@ class Approve extends Component
                 $q->latest()->limit(1);
             }])
             ->where('is_approved', false)
+            ->whereNull('rejection_reason')
             ->latest()
             ->paginate(10, ['*'], 'page');
         } elseif ($this->filterStatus === 'approved') {
@@ -205,13 +257,11 @@ class Approve extends Component
             ->latest()
             ->paginate(10, ['*'], 'page');
         } elseif ($this->filterStatus === 'rejected') {
-            // Show rejected users (with rejected payment proofs)
+            // Show rejected users
             $rejectedUsers = User::with(['paymentProofs' => function($q) {
-                $q->where('status', 'rejected')->latest()->limit(1);
+                $q->latest()->limit(1);
             }])
-            ->whereHas('paymentProofs', function($q) {
-                $q->where('status', 'rejected');
-            })
+            ->whereNotNull('rejection_reason')
             ->latest()
             ->paginate(10, ['*'], 'page');
         } else { // 'all'
