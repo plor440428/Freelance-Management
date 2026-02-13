@@ -15,11 +15,14 @@ class Project extends Model
         'created_by',
         'freelance_id',
         'status',
+        'cancel_reason',
+        'cancelled_at',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
     public function creator()

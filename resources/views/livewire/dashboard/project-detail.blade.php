@@ -33,11 +33,13 @@
                     class="px-4 py-2 rounded-lg text-sm font-semibold border-2 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer transition
                     @if($project->status === 'active') bg-emerald-50 text-emerald-700 border-emerald-300 focus:ring-emerald-400
                     @elseif($project->status === 'on_hold') bg-amber-50 text-amber-700 border-amber-300 focus:ring-amber-400
+                    @elseif($project->status === 'cancelled') bg-red-50 text-red-700 border-red-300 focus:ring-red-400
                     @else bg-blue-50 text-blue-700 border-blue-300 focus:ring-blue-400
                     @endif">
                     <option value="active" @selected($project->status === 'active')>Active</option>
                     <option value="on_hold" @selected($project->status === 'on_hold')>On Hold</option>
                     <option value="completed" @selected($project->status === 'completed')>Completed</option>
+                    <option value="cancelled" @selected($project->status === 'cancelled')>Cancelled</option>
                 </select>
                 <button wire:click="editProject" wire:loading.attr="disabled" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold disabled:opacity-50 transition flex items-center gap-2">
                     <span wire:loading.remove wire:target="editProject">Edit</span>
@@ -63,6 +65,7 @@
                 <span class="px-4 py-2 rounded-lg text-sm font-semibold border-2
                     @if($project->status === 'active') bg-emerald-50 text-emerald-700 border-emerald-300
                     @elseif($project->status === 'on_hold') bg-amber-50 text-amber-700 border-amber-300
+                    @elseif($project->status === 'cancelled') bg-red-50 text-red-700 border-red-300
                     @else bg-blue-50 text-blue-700 border-blue-300
                     @endif">
                     {{ ucfirst(str_replace('_', ' ', $project->status)) }}
@@ -70,6 +73,35 @@
             @endif
         </div>
     </div>
+
+    @if($project->status === 'cancelled' && $project->cancel_reason)
+        <div class="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4">
+            <div class="text-sm font-semibold mb-1">เหตุผลการยกเลิกโปรเจกต์</div>
+            <div class="text-sm">{{ $project->cancel_reason }}</div>
+        </div>
+    @endif
+
+    @if($showCancelModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center">
+            <div class="absolute inset-0 bg-black/40" wire:click="closeCancelModal"></div>
+            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100">
+                <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-red-50">
+                    <h3 class="text-lg font-black text-gray-900">ยืนยันการยกเลิกโปรเจกต์</h3>
+                    <button wire:click="closeCancelModal" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
+                </div>
+                <div class="p-6">
+                    <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Cancellation Reason</label>
+                    <textarea wire:model.defer="cancelReason" rows="4" class="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition resize-none" placeholder="กรอกเหตุผลการยกเลิกโปรเจกต์..."></textarea>
+                    @error('cancelReason') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
+
+                    <div class="flex gap-3 pt-5">
+                        <button wire:click="confirmCancelStatus" wire:loading.attr="disabled" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition">ยกเลิกโปรเจกต์</button>
+                        <button type="button" wire:click="closeCancelModal" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">กลับ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <!-- Stats Bar -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
@@ -515,9 +547,18 @@
                                 <option value="active">Active</option>
                                 <option value="on_hold">On Hold</option>
                                 <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
                             </select>
                             @error('status') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
                         </div>
+
+                        @if($status === 'cancelled')
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Cancellation Reason</label>
+                                <textarea wire:model.defer="cancelReason" rows="3" class="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition resize-none" placeholder="กรอกเหตุผลการยกเลิกโปรเจกต์..."></textarea>
+                                @error('cancelReason') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
+                            </div>
+                        @endif
 
                         <div class="flex gap-3 pt-4 border-t border-gray-200">
                             <button type="submit" wire:loading.attr="disabled" class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">

@@ -90,7 +90,7 @@ class Projects extends Component
         return [
             'name' => 'required|string|min:3|max:255',
             'description' => 'nullable|string',
-            'status' => 'required|in:active,completed,on_hold',
+            'status' => 'required|in:active,completed,on_hold,cancelled',
             'selectedCustomers' => 'array',
         ];
     }

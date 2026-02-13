@@ -36,6 +36,9 @@ class ProjectDetail extends Component
     public $selectedCustomers = [];
     public $selectedFreelance = null;
     public $selectedManagers = [];
+    public $showCancelModal = false;
+    public $cancelReason = '';
+    public $pendingStatus = null;
 
     // File uploads
     public $uploadedFiles = [];
@@ -87,7 +90,7 @@ class ProjectDetail extends Component
         return [
             'name' => 'required|string|min:3|max:255',
             'description' => 'nullable|string',
-            'status' => 'required|in:active,completed,on_hold',
+            'status' => 'required|in:active,completed,on_hold,cancelled',
             'selectedCustomers' => 'array',
         ];
     }
@@ -147,6 +150,7 @@ class ProjectDetail extends Component
         $this->name = $this->project->name;
         $this->description = $this->project->description;
         $this->status = $this->project->status;
+        $this->cancelReason = $this->project->cancel_reason ?? '';
         $this->showEditModal = true;
     }
 
@@ -172,13 +176,23 @@ class ProjectDetail extends Component
             }
 
             // Validate status
-            if (!in_array($newStatus, ['active', 'completed', 'on_hold'])) {
+            if (!in_array($newStatus, ['active', 'completed', 'on_hold', 'cancelled'])) {
                 $this->dispatch('notify', message: 'Invalid status.', type: 'error');
                 return;
             }
 
+            if ($newStatus === 'cancelled') {
+                $this->pendingStatus = $newStatus;
+                $this->showCancelModal = true;
+                return;
+            }
+
             $oldStatus = $this->project->status;
-            $this->project->update(['status' => $newStatus]);
+            $this->project->update([
+                'status' => $newStatus,
+                'cancel_reason' => null,
+                'cancelled_at' => null,
+            ]);
 
             if ($oldStatus !== $newStatus) {
                 $this->sendStatusUpdateEmails($oldStatus, $newStatus);
@@ -196,7 +210,8 @@ class ProjectDetail extends Component
             $this->validate([
                 'name' => 'required|string|min:3|max:255',
                 'description' => 'nullable|string',
-                'status' => 'required|in:active,completed,on_hold',
+                'status' => 'required|in:active,completed,on_hold,cancelled',
+                'cancelReason' => 'nullable|string|min:5|max:2000',
             ]);
 
             // Check authorization
@@ -206,10 +221,17 @@ class ProjectDetail extends Component
             }
 
             $oldStatus = $this->project->status;
+            if ($this->status === 'cancelled' && trim((string) $this->cancelReason) === '') {
+                $this->addError('cancelReason', 'กรุณาระบุเหตุผลการยกเลิก');
+                return;
+            }
+
             $this->project->update([
                 'name' => $this->name,
                 'description' => $this->description,
                 'status' => $this->status,
+                'cancel_reason' => $this->status === 'cancelled' ? $this->cancelReason : null,
+                'cancelled_at' => $this->status === 'cancelled' ? now() : null,
             ]);
 
             if ($oldStatus !== $this->status) {
@@ -222,6 +244,40 @@ class ProjectDetail extends Component
         } catch (\Exception $e) {
             $this->dispatch('notify', message: 'Failed to update project. ' . $e->getMessage(), type: 'error');
         }
+    }
+
+    public function confirmCancelStatus()
+    {
+        $this->validate([
+            'cancelReason' => 'required|string|min:5|max:2000',
+        ], [
+            'cancelReason.required' => 'กรุณาระบุเหตุผลการยกเลิก',
+            'cancelReason.min' => 'เหตุผลต้องมีอย่างน้อย 5 ตัวอักษร',
+        ]);
+
+        $oldStatus = $this->project->status;
+        $this->project->update([
+            'status' => 'cancelled',
+            'cancel_reason' => $this->cancelReason,
+            'cancelled_at' => now(),
+        ]);
+
+        if ($oldStatus !== 'cancelled') {
+            $this->sendStatusUpdateEmails($oldStatus, 'cancelled');
+        }
+
+        $this->showCancelModal = false;
+        $this->pendingStatus = null;
+        $this->cancelReason = '';
+        $this->dispatch('notify', message: 'Project cancelled successfully!', type: 'success');
+        $this->loadProject();
+    }
+
+    public function closeCancelModal()
+    {
+        $this->showCancelModal = false;
+        $this->pendingStatus = null;
+        $this->cancelReason = '';
     }
 
     protected function sendStatusUpdateEmails(string $oldStatus, string $newStatus)

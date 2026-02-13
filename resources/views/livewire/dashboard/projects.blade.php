@@ -50,6 +50,7 @@
                         <option value="active">Active</option>
                         <option value="on_hold">On Hold</option>
                         <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
                     </select>
                 </div>
 
@@ -194,6 +195,7 @@
                         <span class="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ml-2
                             @if($project->status === 'active') bg-emerald-100 text-emerald-800 border border-emerald-300
                             @elseif($project->status === 'on_hold') bg-amber-100 text-amber-800 border border-amber-300
+                            @elseif($project->status === 'cancelled') bg-red-100 text-red-700 border border-red-300
                             @else bg-blue-100 text-blue-800 border border-blue-300
                             @endif">
                             {{ ucfirst(str_replace('_', ' ', $project->status)) }}
@@ -314,6 +316,7 @@
                                 <option value="active">Active</option>
                                 <option value="on_hold">On Hold</option>
                                 <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
                             </select>
                             @error('status') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>

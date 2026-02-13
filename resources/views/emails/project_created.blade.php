@@ -33,6 +33,8 @@
                             <span style="background: #ecfdf5; color: #047857; padding: 4px 12px; border-radius: 12px; font-size: 0.9rem; font-weight: 500;">กำลังดำเนินการ</span>
                         @elseif($project->status === 'completed')
                             <span style="background: #eff6ff; color: #1e40af; padding: 4px 12px; border-radius: 12px; font-size: 0.9rem; font-weight: 500;">เสร็จสิ้น</span>
+                        @elseif($project->status === 'cancelled')
+                            <span style="background: #fee2e2; color: #b91c1c; padding: 4px 12px; border-radius: 12px; font-size: 0.9rem; font-weight: 500;">ยกเลิก</span>
                         @else
                             <span style="background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 12px; font-size: 0.9rem; font-weight: 500;">พักดำเนินการ</span>
                         @endif
