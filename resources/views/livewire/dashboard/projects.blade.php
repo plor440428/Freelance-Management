@@ -9,7 +9,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                         </svg>
                     </div>
-                    <h3 class="text-3xl font-bold text-gray-900">Projects</h3>
+                    <h3 class="dash-title text-3xl font-bold text-gray-900">Projects</h3>
                 </div>
                 <p class="text-gray-600">Manage and track all your projects</p>
             </div>
@@ -26,7 +26,7 @@
 
     <div class="max-w-7xl mx-auto px-6">
         <!-- Search & Filter Section -->
-        <div class="bg-white rounded-xl shadow p-6 mb-8 border border-gray-200">
+        <div class="dash-panel rounded-xl p-6 mb-8 border border-gray-200">
             <div class="mb-4">
                 <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Filter Projects</h4>
             </div>
@@ -176,7 +176,7 @@
         </div>
 
         <!-- Projects Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div class="dash-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             @forelse($projects as $project)
                 <a wire:navigate href="/dashboard/projects/{{ $project->id }}" class="bg-white rounded-xl shadow hover:shadow-2xl hover:scale-105 transition p-6 cursor-pointer block border border-gray-200 hover:border-blue-500/50">
                     <!-- Project Status Badge -->
@@ -277,11 +277,11 @@
 
     <!-- Create Project Modal -->
     @if($showCreateModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black/40" wire:click="$set('showCreateModal', false)"></div>
-            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden border border-gray-200">
+        <div class="fixed inset-0 z-[1000] overflow-hidden">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="$set('showCreateModal', false)"></div>
+            <div class="absolute right-0 top-0 h-screen max-h-screen w-full max-w-2xl bg-white/95 shadow-2xl ring-1 ring-slate-200 flex flex-col z-[1001]">
                 <!-- Modal Header -->
-                <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-white to-gray-50">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gradient-to-r from-white to-gray-50">
                     <div class="flex items-center gap-3">
                         <div class="p-2 bg-blue-100 rounded-lg">
                             <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,7 +293,7 @@
                     <button wire:click="$set('showCreateModal', false)" class="text-gray-600 hover:text-gray-900 transition text-2xl leading-none">&times;</button>
                 </div>
 
-                <div class="p-6 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                <div class="flex-1 overflow-y-auto p-5 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                     <form wire:submit.prevent="createProject" class="space-y-5 h-full flex flex-col">
                         <!-- Project Name -->
                         <div>

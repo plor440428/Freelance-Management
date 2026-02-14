@@ -1,8 +1,54 @@
 <div>
-    <div class="min-h-screen bg-gray-100">
-    <div class="flex h-screen">
+    <style>
+        :root {
+            --dash-ink: #0f172a;
+            --dash-mist: rgba(248, 250, 252, 0.7);
+            --dash-line: rgba(148, 163, 184, 0.35);
+            --dash-glow: rgba(14, 165, 233, 0.18);
+        }
+        .dashboard-shell {
+            font-family: 'IBM Plex Sans Thai', 'Segoe UI', Arial, sans-serif;
+            color: var(--dash-ink);
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 12% 8%, rgba(14, 165, 233, 0.12), transparent 42%),
+                radial-gradient(circle at 88% 12%, rgba(34, 197, 94, 0.1), transparent 38%),
+                linear-gradient(135deg, #f8fafc 0%, #f1f5f9 60%, #fef3c7 100%);
+        }
+        .dash-title {
+            font-family: 'IBM Plex Sans Thai', 'Segoe UI', Arial, sans-serif;
+            letter-spacing: 0.2px;
+        }
+        .dash-panel {
+            background: var(--dash-mist);
+            border: 1px solid var(--dash-line);
+            box-shadow: 0 18px 30px -26px rgba(15, 23, 42, 0.45), 0 6px 14px -10px rgba(14, 165, 233, 0.22);
+            backdrop-filter: blur(12px);
+        }
+        .dash-grid > * {
+            animation: fadeUp 0.55s ease both;
+        }
+        .dash-grid > *:nth-child(1) { animation-delay: 40ms; }
+        .dash-grid > *:nth-child(2) { animation-delay: 80ms; }
+        .dash-grid > *:nth-child(3) { animation-delay: 120ms; }
+        .dash-grid > *:nth-child(4) { animation-delay: 160ms; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .dash-sidebar {
+            background: linear-gradient(180deg, #0f172a 0%, #111827 50%, #0f172a 100%);
+            box-shadow: 12px 0 30px -18px rgba(15, 23, 42, 0.7);
+        }
+        .dash-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+    <div class="dashboard-shell">
+    <div class="flex min-h-screen">
         <!-- Sidebar -->
-        <aside id="sidebar" class="fixed inset-y-0 left-0 z-20 w-64 transform -translate-x-0 md:translate-x-0 transition-transform duration-200 bg-slate-900 text-white shadow-lg">
+        <aside id="sidebar" class="dash-sidebar fixed inset-y-0 left-0 z-20 w-64 transform -translate-x-0 md:translate-x-0 transition-transform duration-200 text-white shadow-lg">
             <div class="h-16 flex items-center justify-between px-4 border-b border-slate-800">
                 <div class="font-bold text-lg">FreelMane</div>
                 <button id="sidebarClose" class="md:hidden p-2 rounded-md text-white hover:bg-slate-800">
@@ -100,7 +146,7 @@
         <!-- Main content area -->
         <div class="flex-1 md:pl-64">
             <!-- Navbar -->
-            <header class="sticky top-0 z-10 bg-white border-b border-slate-200">
+            <header class="dash-nav sticky top-0 z-10 border-b border-slate-200">
                 <div class="flex items-center justify-between h-16 px-4">
                     <div class="flex items-center gap-3">
                         <button id="sidebarToggle" class="p-2 rounded-md text-slate-700 hover:bg-slate-100 md:hidden">
@@ -123,8 +169,8 @@
             </header>
 
             <!-- Page content -->
-            <main class="p-6">
-                <div class="bg-white rounded shadow p-4">
+            <main class="p-6 h-full overflow-auto">
+                <div class="dash-panel rounded-2xl p-4 h-full ">
                     @switch($active)
                     @case('home')
                     @livewire('dashboard.home')

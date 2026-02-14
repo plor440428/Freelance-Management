@@ -9,7 +9,7 @@
                     </svg>
                 </button>
                 <div class="border-l border-gray-200 pl-5">
-                    <h1 class="text-3xl font-black text-gray-900">{{ $project->name }}</h1>
+                    <h1 class="dash-title text-3xl font-black text-gray-900">{{ $project->name }}</h1>
                     <p class="text-sm text-gray-500 mt-1.5 font-medium">
                         by
                         @if($project->freelance)
@@ -82,14 +82,14 @@
     @endif
 
     @if($showCancelModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black/40" wire:click="closeCancelModal"></div>
-            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100">
-                <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-red-50">
+        <div class="fixed inset-0 z-[1000] overflow-hidden">
+            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="closeCancelModal"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
                     <h3 class="text-lg font-black text-gray-900">ยืนยันการยกเลิกโปรเจกต์</h3>
                     <button wire:click="closeCancelModal" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
-                <div class="p-6">
+                <div class="flex-1 overflow-y-auto p-5">
                     <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Cancellation Reason</label>
                     <textarea wire:model.defer="cancelReason" rows="4" class="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition resize-none" placeholder="กรอกเหตุผลการยกเลิกโปรเจกต์..."></textarea>
                     @error('cancelReason') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
@@ -104,7 +104,7 @@
     @endif
 
     <!-- Stats Bar -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
+    <div class="dash-grid grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
         <div class="bg-blue-600 rounded-2xl p-6 hover:shadow-xl transition hover:scale-105 relative overflow-hidden group">
             <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-5 transition"></div>
             <div class="relative z-10 flex flex-col justify-between h-full">
@@ -519,15 +519,15 @@
 
     <!-- Edit Project Details Modal -->
     @if($showEditModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black opacity-40" wire:click="$set('showEditModal', false)"></div>
-            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 overflow-hidden border border-gray-100">
-                <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+        <div class="fixed inset-0 z-[1000] overflow-hidden">
+            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('showEditModal', false)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Edit Project Details</h3>
                     <button wire:click="$set('showEditModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
 
-                <div class="p-6 max-h-96 overflow-y-auto">
+                <div class="flex-1 overflow-y-auto p-5">
                     <form wire:submit.prevent="updateProject" class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Project Name</label>
@@ -580,15 +580,15 @@
 
     <!-- Edit Customers Modal -->
     @if($showEditCustomersModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black opacity-40" wire:click="$set('showEditCustomersModal', false)"></div>
-            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 overflow-hidden border border-gray-100">
-                <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white">
+        <div class="fixed inset-0 z-[1000] overflow-hidden">
+            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('showEditCustomersModal', false)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Manage Customers</h3>
                     <button wire:click="$set('showEditCustomersModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
 
-                <div class="p-6 max-h-96 overflow-y-auto">
+                <div class="flex-1 overflow-y-auto p-5">
                     <form wire:submit.prevent="updateCustomers" class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-3 uppercase tracking-widest">Select Customers</label>
@@ -633,15 +633,15 @@
 
     <!-- Edit Managers Modal -->
     @if($showEditManagersModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black opacity-40" wire:click="$set('showEditManagersModal', false)"></div>
-            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 overflow-hidden border border-gray-100">
-                <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-white">
+        <div class="fixed inset-0 z-[1000] overflow-hidden">
+            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('showEditManagersModal', false)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Manage Project Managers</h3>
                     <button wire:click="$set('showEditManagersModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
 
-                <div class="p-6 max-h-96 overflow-y-auto">
+                <div class="flex-1 overflow-y-auto p-5">
                     <form wire:submit.prevent="updateManagers" class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-3 uppercase tracking-widest">Select Managers (Freelances Only)</label>
@@ -686,15 +686,15 @@
 
     <!-- Edit Freelance Modal -->
     @if($showEditFreelanceModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black opacity-40" wire:click="$set('showEditFreelanceModal', false)"></div>
-            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden border border-gray-100">
-                <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+        <div class="fixed inset-0 z-[1000] overflow-hidden">
+            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('showEditFreelanceModal', false)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Assign Freelance</h3>
                     <button wire:click="$set('showEditFreelanceModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
 
-                <div class="p-6">
+                <div class="flex-1 overflow-y-auto p-5">
                     <form wire:submit.prevent="updateFreelance" class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-3 uppercase tracking-widest">Select Freelance (Only 1)</label>
@@ -746,17 +746,20 @@
 
     <!-- Delete Project Confirmation -->
     @if($confirmingDeleteId)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black opacity-40" wire:click="$set('confirmingDeleteId', null)"></div>
-            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden border border-gray-100">
-                <div class="p-6">
+        <div class="fixed inset-0 z-[1000] overflow-hidden">
+            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('confirmingDeleteId', null)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
+                    <h3 class="text-lg font-black text-gray-900">Delete Project</h3>
+                    <button wire:click="$set('confirmingDeleteId', null)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-5">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
                             <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0-10a8 8 0 110 16 8 8 0 010-16z" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-black text-gray-900">Delete Project</h3>
                     </div>
                     <p class="text-sm font-medium text-gray-700 mb-6">Are you sure you want to delete this project? This will also delete all tasks. This action cannot be undone.</p>
                     <div class="flex gap-3">
@@ -770,17 +773,20 @@
 
     <!-- Delete Task Confirmation -->
     @if($confirmingDeleteTaskId)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black opacity-40" wire:click="$set('confirmingDeleteTaskId', null)"></div>
-            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden border border-gray-100">
-                <div class="p-6">
+        <div class="fixed inset-0 z-[1000] overflow-hidden">
+            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('confirmingDeleteTaskId', null)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
+                    <h3 class="text-lg font-black text-gray-900">Delete Task</h3>
+                    <button wire:click="$set('confirmingDeleteTaskId', null)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-5">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
                             <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0-10a8 8 0 110 16 8 8 0 010-16z" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-black text-gray-900">Delete Task</h3>
                     </div>
                     <p class="text-sm font-medium text-gray-700 mb-6">Are you sure you want to delete this task? This action cannot be undone.</p>
                     <div class="flex gap-3">
@@ -794,17 +800,20 @@
 
     <!-- Delete File Confirmation -->
     @if($confirmingDeleteFileId)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black opacity-40" wire:click="$set('confirmingDeleteFileId', null)"></div>
-            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden border border-gray-100">
-                <div class="p-6">
+        <div class="fixed inset-0 z-[1000] overflow-hidden">
+            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('confirmingDeleteFileId', null)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
+                    <h3 class="text-lg font-black text-gray-900">Delete File</h3>
+                    <button wire:click="$set('confirmingDeleteFileId', null)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-5">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
                             <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0-10a8 8 0 110 16 8 8 0 010-16z" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-black text-gray-900">Delete File</h3>
                     </div>
                     <p class="text-sm font-medium text-gray-700 mb-6">Are you sure you want to delete this file? This action cannot be undone.</p>
                     <div class="flex gap-3">

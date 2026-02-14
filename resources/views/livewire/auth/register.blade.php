@@ -1,4 +1,4 @@
-<div>
+<div style="font-family: 'IBM Plex Sans Thai', sans-serif;">
     <!-- Notification Toast -->
     <div x-data="{ show: false, type: 'success', message: '' }"
          x-show="show"
@@ -20,7 +20,7 @@
             'bg-green-50 border-green-500 text-green-800': type === 'success',
             'bg-red-50 border-red-500 text-red-800': type === 'error',
             'bg-yellow-50 border-yellow-500 text-yellow-800': type === 'warning'
-        }" class="border-l-4 p-4 rounded shadow-lg">
+        }" class="border-l-4 p-4 rounded-xl shadow-lg">
             <div class="flex items-start">
                 <div class="flex-shrink-0">
                     <svg x-show="type === 'success'" class="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,25 +45,25 @@
         </div>
     </div>
 
-    <div class="min-h-screen flex items-center justify-center px-6 py-12">
+    <div class="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
         <div class="w-full max-w-5xl">
-            <div class="grid grid-cols-1 md:grid-cols-5 rounded-2xl overflow-hidden shadow-2xl border border-slate-200 bg-white">
-                <div class="md:col-span-2 p-6 sm:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white">
-                    <div class="text-sm uppercase tracking-[0.2em] text-slate-300">Create</div>
-                    <h2 class="mt-4 text-2xl font-bold leading-tight">สมัครสมาชิก
-                        <span class="block text-slate-300 text-base font-medium mt-2">เริ่มต้นจัดการงานและโปรเจกต์อย่างเป็นระบบ</span>
+            <div class="grid grid-cols-1 lg:grid-cols-5 rounded-2xl overflow-hidden shadow-xl border border-slate-200/80 bg-white">
+                <div class="lg:col-span-2 p-8 sm:p-10 lg:p-12 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white">
+                    <div class="text-xs sm:text-sm uppercase tracking-[0.15em] text-slate-300 font-medium">Create</div>
+                    <h2 class="mt-5 text-2xl sm:text-3xl font-semibold leading-tight">สมัครสมาชิก
+                        <span class="block text-slate-300 text-base sm:text-lg font-normal mt-3">เริ่มต้นจัดการงานและโปรเจกต์อย่างเป็นระบบ</span>
                     </h2>
-                    <div class="mt-6 text-sm text-slate-200 space-y-2">
-                        <p>1) กรอกข้อมูลผู้ใช้ให้ครบถ้วน</p>
-                        <p>2) อัปโหลดหลักฐานการโอน</p>
-                        <p>3) รอการอนุมัติจากผู้ดูแลระบบ</p>
+                    <div class="mt-8 text-sm sm:text-base text-slate-200 space-y-2.5">
+                        <p class="flex items-start"><span class="text-slate-400 mr-2">1.</span> กรอกข้อมูลผู้ใช้ให้ครบถ้วน</p>
+                        <p class="flex items-start"><span class="text-slate-400 mr-2">2.</span> อัปโหลดหลักฐานการโอน</p>
+                        <p class="flex items-start"><span class="text-slate-400 mr-2">3.</span> รอการอนุมัติจากผู้ดูแลระบบ</p>
                     </div>
                 </div>
 
-                <div class="md:col-span-3 p-6 sm:p-8">
-                    <div class="mb-6">
-                        <h3 class="text-xl font-semibold text-slate-900">สร้างบัญชีใหม่</h3>
-                        <p class="mt-2 text-sm text-slate-600">กรอกข้อมูลให้ถูกต้องเพื่อความรวดเร็วในการอนุมัติ</p>
+                <div class="lg:col-span-3 p-8 sm:p-10 lg:p-12">
+                    <div class="mb-8">
+                        <h3 class="text-xl sm:text-2xl font-semibold text-slate-900">สร้างบัญชีใหม่</h3>
+                        <p class="mt-2.5 text-sm sm:text-base text-slate-600">กรอกข้อมูลให้ถูกต้องเพื่อความรวดเร็วในการอนุมัติ</p>
                     </div>
 
                     <form wire:submit.prevent="register" class="space-y-6" novalidate>

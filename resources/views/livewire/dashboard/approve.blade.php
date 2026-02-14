@@ -1,5 +1,14 @@
-<div>
-    <h3 class="text-2xl font-bold mb-6">User Approvals</h3>
+<div class="space-y-6">
+    <div class="bg-gradient-to-r from-white via-slate-50 to-white border border-slate-200/70 rounded-2xl p-6">
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Approval Center</p>
+                <h3 class="dash-title text-2xl font-semibold text-slate-900 mt-2">User Approvals</h3>
+                <p class="text-sm text-slate-600 mt-1">Review pending signups and manage access.</p>
+            </div>
+            <div class="text-xs text-slate-500">Updated {{ now()->format('M d, Y H:i') }}</div>
+        </div>
+    </div>
 
     <div wire:loading.flex wire:target="filterStatus,previousPage,nextPage,gotoPage,viewUser" class="mb-4 items-center gap-2 text-sm text-slate-600">
         <svg class="h-4 w-4 animate-spin text-slate-500" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -10,22 +19,22 @@
     </div>
 
     <!-- Filter Tabs -->
-    <div class="mb-6">
-        <div class="flex space-x-2 border-b border-slate-200">
+    <div>
+        <div class="bg-white/80 rounded-2xl border border-slate-200/70 p-2 flex flex-wrap gap-2">
             <button wire:click="$set('filterStatus', 'pending')"
-                    class="px-4 py-2 {{ $filterStatus === 'pending' ? 'border-b-2 border-blue-500 text-blue-600 font-semibold' : 'text-slate-600' }}">
+                    class="px-4 py-2 rounded-full text-sm font-semibold transition {{ $filterStatus === 'pending' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                 Pending
             </button>
             <button wire:click="$set('filterStatus', 'approved')"
-                    class="px-4 py-2 {{ $filterStatus === 'approved' ? 'border-b-2 border-green-500 text-green-600 font-semibold' : 'text-slate-600' }}">
+                    class="px-4 py-2 rounded-full text-sm font-semibold transition {{ $filterStatus === 'approved' ? 'bg-green-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                 Approved
             </button>
             <button wire:click="$set('filterStatus', 'rejected')"
-                    class="px-4 py-2 {{ $filterStatus === 'rejected' ? 'border-b-2 border-red-500 text-red-600 font-semibold' : 'text-slate-600' }}">
+                    class="px-4 py-2 rounded-full text-sm font-semibold transition {{ $filterStatus === 'rejected' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                 Rejected
             </button>
             <button wire:click="$set('filterStatus', 'all')"
-                    class="px-4 py-2 {{ $filterStatus === 'all' ? 'border-b-2 border-slate-500 text-slate-600 font-semibold' : 'text-slate-600' }}">
+                    class="px-4 py-2 rounded-full text-sm font-semibold transition {{ $filterStatus === 'all' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                 All
             </button>
         </div>
@@ -33,7 +42,7 @@
 
     <!-- Pending Users List -->
     @if($filterStatus === 'pending' || $filterStatus === 'all')
-        <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+        <div class="dash-panel rounded-2xl overflow-hidden mb-8">
             <div class="px-6 py-4 border-b border-slate-200">
                 <h4 class="font-semibold text-lg">
                     @if($filterStatus === 'all')
@@ -54,7 +63,7 @@
                 </div>
             @else
                 <table class="w-full">
-                    <thead class="bg-slate-50">
+                    <thead class="bg-slate-50/80">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">User</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Role</th>
@@ -142,7 +151,7 @@
 
     <!-- Approved Users List -->
     @if($filterStatus === 'approved' || $filterStatus === 'all')
-        <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+        <div class="dash-panel rounded-2xl overflow-hidden mb-8">
             <div class="px-6 py-4 border-b border-slate-200">
                 <h4 class="font-semibold text-lg">
                     @if($filterStatus === 'all')
@@ -163,7 +172,7 @@
                 </div>
             @else
                 <table class="w-full">
-                    <thead class="bg-slate-50">
+                    <thead class="bg-slate-50/80">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">User</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Role</th>
@@ -236,7 +245,7 @@
 
     <!-- Rejected Users List -->
     @if($filterStatus === 'rejected')
-        <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+        <div class="dash-panel rounded-2xl overflow-hidden mb-8">
             <div class="px-6 py-4 border-b border-slate-200">
                 <h4 class="font-semibold text-lg">Rejected Users ({{ $rejectedUsers->total() }})</h4>
             </div>
@@ -247,7 +256,7 @@
                 </div>
             @else
                 <table class="w-full">
-                    <thead class="bg-slate-50">
+                    <thead class="bg-slate-50/80">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">User</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Role</th>
@@ -322,13 +331,13 @@
 
     <!-- All Users List -->
     @if($filterStatus === 'all' && $users->isNotEmpty())
-        <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+        <div class="dash-panel rounded-2xl overflow-hidden mb-8">
             <div class="px-6 py-4 border-b border-slate-200">
                 <h4 class="font-semibold text-lg">All Users ({{ $users->total() }})</h4>
             </div>
 
             <table class="w-full">
-                <thead class="bg-slate-50">
+                <thead class="bg-slate-50/80">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">User</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Role</th>
@@ -401,9 +410,10 @@
 
     <!-- User Detail Modal -->
     @if($showUserDetail && $selectedUser)
-        <div class="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50" wire:click="closeUserDetail">
-            <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-auto m-4 relative" wire:click.stop>
-                <div wire:loading.flex wire:target="approveUser,rejectAndDelete,rejectAndRequestRevision" class="absolute inset-0 z-10 bg-white/70 items-center justify-center">
+        <div class="fixed inset-0 z-[1000] overflow-hidden" wire:keydown.escape.window="closeUserDetail" tabindex="-1">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="closeUserDetail"></div>
+            <div class="absolute inset-y-0 right-0 h-full w-full max-w-3xl bg-white shadow-2xl ring-1 ring-slate-200 flex flex-col z-[1001]" wire:click.stop>
+                <div wire:loading.flex wire:target="approveUser,rejectUser" class="absolute inset-0 z-10 bg-white/70 items-center justify-center">
                     <div class="flex items-center gap-2 text-sm text-slate-700">
                         <svg class="h-5 w-5 animate-spin text-slate-600" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -412,16 +422,16 @@
                         <span>กำลังบันทึก...</span>
                     </div>
                 </div>
-                <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-                    <h3 class="text-xl font-bold">Review Registration</h3>
-                    <button wire:click="closeUserDetail" class="text-slate-400 hover:text-slate-600">
+                <div class="px-6 py-5 border-b border-slate-200 flex justify-between items-center bg-gradient-to-r from-slate-50 to-white shrink-0">
+                    <h3 class="text-xl font-semibold text-slate-900">Review Registration</h3>
+                    <button type="button" wire:click="closeUserDetail" class="text-slate-400 hover:text-slate-600 transition-colors" aria-label="Close">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
                 </div>
 
-                <div class="p-6">
+                <div class="flex-1 overflow-y-auto overflow-x-hidden px-6 py-5" style="max-height: calc(100vh - 80px);">
                     <!-- User Info -->
                     <div class="mb-6">
                         <div class="flex items-center mb-4">
@@ -472,11 +482,11 @@
                     <!-- Payment Slip -->
                     @if($selectedProof && $selectedProof->proof_file)
                         <div class="mb-6">
-                            <h5 class="font-semibold mb-3 text-lg">Payment Slip</h5>
-                            <div class="border border-slate-200 rounded-lg p-4 bg-slate-50">
+                            <h5 class="font-semibold mb-3 text-lg text-slate-900">Payment Slip</h5>
+                            <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 overflow-hidden">
                                 <img src="{{ $selectedProof->proof_file_url }}"
                                      alt="Payment Slip"
-                                     class="max-w-full h-auto rounded shadow-lg">
+                                     class="w-full max-h-[600px] object-contain rounded-lg shadow-sm">
                             </div>
                         </div>
                     @endif
@@ -505,17 +515,17 @@
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="flex justify-end space-x-3">
+                        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 pb-4 sticky bottom-0 bg-white border-t border-slate-200 -mx-6 px-6 -mb-5">
                             <button wire:click="closeUserDetail"
-                                    class="px-6 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 font-medium">
-                                Cancel
+                                    class="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-medium transition-colors">
+                                ยกเลิก
                             </button>
 
                             <button wire:click="rejectUser"
                                     wire:loading.attr="disabled"
                                     wire:loading.class="opacity-60 cursor-not-allowed"
                                     wire:target="rejectUser"
-                                    class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium flex items-center space-x-2">
+                                    class="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-medium flex items-center justify-center gap-2 shadow-sm transition-all">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
@@ -527,7 +537,7 @@
                                     wire:loading.attr="disabled"
                                     wire:loading.class="opacity-60 cursor-not-allowed"
                                     wire:target="approveUser"
-                                    class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center space-x-2">
+                                    class="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-medium flex items-center justify-center gap-2 shadow-sm transition-all">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>

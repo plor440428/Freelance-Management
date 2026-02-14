@@ -1,31 +1,37 @@
 <div>
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h3 class="text-lg font-semibold">Accounts</h3>
-            <p class="text-sm text-slate-600">Manage user accounts in the system.</p>
-        </div>
-        <div class="flex gap-2">
+    <div class="bg-gradient-to-r from-white via-slate-50 to-white border border-slate-200/60 rounded-2xl p-6 mb-6 shadow-sm">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Account Center</p>
+                <h3 class="dash-title text-2xl font-semibold text-slate-900 mt-2">Accounts</h3>
+                <p class="text-sm text-slate-600 mt-1">Manage user accounts in the system.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
             @if($search || $filterRole || $filterDate)
-                <button wire:click="clearFilters" class="px-3 py-2 border border-yellow-500 text-yellow-600 rounded hover:bg-yellow-50">Clear Filters</button>
+                <button wire:click="clearFilters" class="px-4 py-2 border border-amber-300 text-amber-700 rounded-lg hover:bg-amber-50">Clear Filters</button>
             @endif
-            <button wire:click="$set('showCreateModal', true)" class="px-3 py-2 bg-black text-white rounded">Create user</button>
+                <button wire:click="$set('showCreateModal', true)" class="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 shadow-sm">Create user</button>
+            </div>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded shadow p-4 mb-6">
-        <h4 class="font-medium text-slate-700 mb-4">Filters</h4>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="dash-panel rounded-2xl p-5 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h4 class="font-semibold text-slate-800">Filters</h4>
+            <span class="text-xs text-slate-500">Quick refine the list</span>
+        </div>
+        <div class="dash-grid grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- Search -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Search (Name/Email)</label>
-                <input type="text" wire:model.live="search" placeholder="Search..." class="w-full border px-3 py-2 rounded text-sm" />
+                <input type="text" wire:model.live="search" placeholder="Search..." class="w-full border border-slate-200 px-3 py-2 rounded-lg text-sm bg-white/90 focus:outline-none focus:ring-2 focus:ring-slate-900/20" />
             </div>
 
             <!-- Role Filter -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                <select wire:model.live="filterRole" class="w-full border px-3 py-2 rounded text-sm">
+                <select wire:model.live="filterRole" class="w-full border border-slate-200 px-3 py-2 rounded-lg text-sm bg-white/90 focus:outline-none focus:ring-2 focus:ring-slate-900/20">
                     <option value="">All Roles</option>
                     <option value="admin">Admin</option>
                     <option value="freelance">Freelancer</option>
@@ -36,7 +42,7 @@
             <!-- Date Filter -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Created Date</label>
-                <input type="date" wire:model.live="filterDate" class="w-full border px-3 py-2 rounded text-sm" />
+                <input type="date" wire:model.live="filterDate" class="w-full border border-slate-200 px-3 py-2 rounded-lg text-sm bg-white/90 focus:outline-none focus:ring-2 focus:ring-slate-900/20" />
             </div>
 
             <!-- Items per page info -->
@@ -48,10 +54,10 @@
         </div>
     </div>
 
-    <div class="overflow-x-auto bg-white rounded shadow">
-        <table class="min-w-full divide-y">
+    <div class="overflow-x-auto bg-white rounded-2xl shadow-sm border border-slate-200">
+        <table class="min-w-full divide-y divide-slate-200">
             <thead>
-                <tr class="text-left text-sm font-medium text-slate-600 bg-slate-50">
+                <tr class="text-left text-sm font-medium text-slate-600 bg-slate-50/80">
                     <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" wire:click="sortBy('id')">
                         ID
                         @if($sortBy === 'id')
@@ -86,21 +92,26 @@
                     <th class="px-4 py-3">Actions</th>
                 </tr>
             </thead>
-            <tbody class="text-sm text-slate-700 divide-y">
+            <tbody class="text-sm text-slate-700 divide-y divide-slate-100">
                 @forelse($users as $u)
-                    <tr class="hover:bg-slate-50">
-                        <td class="px-4 py-3">{{ $u->id }}</td>
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-4 py-3 font-medium text-slate-700">{{ $u->id }}</td>
                         <td class="px-4 py-3">
                             <img src="{{ $u->profile_image_url }}" alt="{{ $u->name }}" class="w-10 h-10 rounded-full object-cover border border-slate-200" title="{{ $u->name }}" />
                         </td>
                         <td class="px-4 py-3">{{ $u->name }}</td>
                         <td class="px-4 py-3 text-slate-600">{{ $u->email }}</td>
-                        <td class="px-4 py-3"><span class="px-2 py-1 bg-slate-100 rounded text-xs font-medium">{{ ucfirst($u->role) }}</span></td>
+                        <td class="px-4 py-3">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold
+                                {{ $u->role === 'admin' ? 'bg-indigo-100 text-indigo-700' : ($u->role === 'freelance' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700') }}">
+                                {{ ucfirst($u->role) }}
+                            </span>
+                        </td>
                         <td class="px-4 py-3">{{ $u->created_at->format('Y-m-d') }}</td>
                         <td class="px-4 py-3 space-x-2">
-                            <button wire:click="viewSubscription({{ $u->id }})" class="px-2 py-1 border rounded text-sm hover:bg-blue-50 text-blue-600">Subscription</button>
-                            <button wire:click="edit({{ $u->id }})" class="px-2 py-1 border rounded text-sm hover:bg-slate-50">Edit</button>
-                            <button wire:click="confirmDelete({{ $u->id }})" class="px-2 py-1 border rounded text-sm text-red-600 hover:bg-red-50">Delete</button>
+                            <button wire:click="viewSubscription({{ $u->id }})" class="px-2.5 py-1 border border-blue-200 rounded-lg text-sm hover:bg-blue-50 text-blue-700">Subscription</button>
+                            <button wire:click="edit({{ $u->id }})" class="px-2.5 py-1 border border-slate-200 rounded-lg text-sm hover:bg-slate-50">Edit</button>
+                            <button wire:click="confirmDelete({{ $u->id }})" class="px-2.5 py-1 border border-red-200 rounded-lg text-sm text-red-600 hover:bg-red-50">Delete</button>
                         </td>
                     </tr>
                 @empty
@@ -121,14 +132,17 @@
 
     <!-- Create Modal -->
     @if($showCreateModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black opacity-40" wire:click="$set('showCreateModal', false)"></div>
-            <div class="relative bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 overflow-hidden">
-                <div class="flex items-center justify-between p-4 border-b">
-                    <h3 class="text-lg font-semibold">Create User</h3>
-                    <button wire:click="$set('showCreateModal', false)" class="text-slate-600 hover:text-slate-800">&times;</button>
+        <div class="fixed inset-0 z-[1000] overflow-hidden">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="$set('showCreateModal', false)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white/95 shadow-2xl border-l border-slate-200 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Account</p>
+                        <h3 class="text-lg font-semibold text-slate-900 mt-1">Create User</h3>
+                    </div>
+                    <button wire:click="$set('showCreateModal', false)" class="text-slate-600 hover:text-slate-800 text-2xl leading-none">&times;</button>
                 </div>
-                <div class="p-4">
+                <div class="flex-1 overflow-y-auto p-5">
                     <form wire:submit.prevent="createUser" class="space-y-4">
                         <div class="flex items-center gap-4">
                             <div>
@@ -146,7 +160,7 @@
                                 <label class="block text-sm font-medium text-gray-700">Profile Picture</label>
                                 <div class="mt-2 flex gap-2">
                                     <input type="file" wire:model="profile_image" accept="image/*" id="profile_image_create" class="hidden" />
-                                    <button type="button" onclick="document.getElementById('profile_image_create').click()" class="flex-1 px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50">Choose file</button>
+                                    <button type="button" onclick="document.getElementById('profile_image_create').click()" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50">Choose file</button>
                                 </div>
                                 @error('profile_image') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
@@ -154,19 +168,19 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Full name</label>
-                            <input type="text" wire:model.defer="name" class="mt-1 block w-full border px-3 py-2 rounded" />
+                            <input type="text" wire:model.defer="name" class="mt-1 block w-full border border-slate-200 px-3 py-2 rounded-lg" />
                             @error('name') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Email</label>
-                            <input type="email" wire:model.defer="email" class="mt-1 block w-full border px-3 py-2 rounded" />
+                            <input type="email" wire:model.defer="email" class="mt-1 block w-full border border-slate-200 px-3 py-2 rounded-lg" />
                             @error('email') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Role</label>
-                            <select wire:model.defer="role" class="mt-1 block w-full border px-3 py-2 rounded">
+                            <select wire:model.defer="role" class="mt-1 block w-full border border-slate-200 px-3 py-2 rounded-lg">
                                 <option value="customer">Customer</option>
                                 <option value="freelance">Freelancer</option>
                                 <option value="admin">Admin</option>
@@ -176,18 +190,18 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Password</label>
-                            <input type="password" wire:model.defer="password" class="mt-1 block w-full border px-3 py-2 rounded" />
+                            <input type="password" wire:model.defer="password" class="mt-1 block w-full border border-slate-200 px-3 py-2 rounded-lg" />
                             @error('password') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Confirm password</label>
-                            <input type="password" wire:model.defer="password_confirmation" class="mt-1 block w-full border px-3 py-2 rounded" />
+                            <input type="password" wire:model.defer="password_confirmation" class="mt-1 block w-full border border-slate-200 px-3 py-2 rounded-lg" />
                         </div>
 
                         <div class="flex items-center gap-3">
-                            <button type="submit" class="px-4 py-2 bg-black text-white rounded">Create</button>
-                            <button type="button" wire:click="$set('showCreateModal', false)" class="px-4 py-2 border rounded">Cancel</button>
+                            <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800">Create</button>
+                            <button type="button" wire:click="$set('showCreateModal', false)" class="px-4 py-2 border border-slate-200 rounded-lg">Cancel</button>
                         </div>
                     </form>
                 </div>
@@ -197,14 +211,17 @@
 
     <!-- Edit Modal -->
     @if($showEditModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black opacity-40" wire:click="$set('showEditModal', false)"></div>
-            <div class="relative bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 overflow-hidden">
-                <div class="flex items-center justify-between p-4 border-b">
-                    <h3 class="text-lg font-semibold">Edit User</h3>
-                    <button wire:click="$set('showEditModal', false)" class="text-slate-600 hover:text-slate-800">&times;</button>
+        <div class="fixed inset-0 z-[1000] overflow-hidden">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="$set('showEditModal', false)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white/95 shadow-2xl border-l border-slate-200 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Account</p>
+                        <h3 class="text-lg font-semibold text-slate-900 mt-1">Edit User</h3>
+                    </div>
+                    <button wire:click="$set('showEditModal', false)" class="text-slate-600 hover:text-slate-800 text-2xl leading-none">&times;</button>
                 </div>
-                <div class="p-4 max-h-96 overflow-y-auto">
+                <div class="flex-1 overflow-y-auto p-5">
                     <form wire:submit.prevent="updateUser" class="space-y-4">
                         <div class="flex items-center gap-4">
                             <div>
@@ -229,7 +246,7 @@
                                 <label class="block text-sm font-medium text-gray-700">Profile Picture</label>
                                 <div class="mt-2 flex gap-2">
                                     <input type="file" wire:model="profile_image" accept="image/*" id="profile_image_edit" class="hidden" />
-                                    <button type="button" onclick="document.getElementById('profile_image_edit').click()" class="flex-1 px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50">Choose file</button>
+                                    <button type="button" onclick="document.getElementById('profile_image_edit').click()" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50">Choose file</button>
                                 </div>
                                 @error('profile_image') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
@@ -237,19 +254,19 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Full name</label>
-                            <input type="text" wire:model.defer="name" class="mt-1 block w-full border px-3 py-2 rounded" />
+                            <input type="text" wire:model.defer="name" class="mt-1 block w-full border border-slate-200 px-3 py-2 rounded-lg" />
                             @error('name') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Email</label>
-                            <input type="email" wire:model.defer="email" class="mt-1 block w-full border px-3 py-2 rounded" />
+                            <input type="email" wire:model.defer="email" class="mt-1 block w-full border border-slate-200 px-3 py-2 rounded-lg" />
                             @error('email') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Role</label>
-                            <select wire:model.defer="role" class="mt-1 block w-full border px-3 py-2 rounded">
+                            <select wire:model.defer="role" class="mt-1 block w-full border border-slate-200 px-3 py-2 rounded-lg">
                                 <option value="customer">Customer</option>
                                 <option value="freelance">Freelancer</option>
                                 <option value="admin">Admin</option>
@@ -259,18 +276,18 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">New password <span class="text-xs text-slate-500">(leave blank to keep current)</span></label>
-                            <input type="password" wire:model.defer="password" class="mt-1 block w-full border px-3 py-2 rounded" />
+                            <input type="password" wire:model.defer="password" class="mt-1 block w-full border border-slate-200 px-3 py-2 rounded-lg" />
                             @error('password') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Confirm new password</label>
-                            <input type="password" wire:model.defer="password_confirmation" class="mt-1 block w-full border px-3 py-2 rounded" />
+                            <input type="password" wire:model.defer="password_confirmation" class="mt-1 block w-full border border-slate-200 px-3 py-2 rounded-lg" />
                         </div>
 
                         <div class="flex items-center gap-3">
-                            <button type="submit" class="px-4 py-2 bg-black text-white rounded">Save</button>
-                            <button type="button" wire:click="$set('showEditModal', false)" class="px-4 py-2 border rounded">Cancel</button>
+                            <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800">Save</button>
+                            <button type="button" wire:click="$set('showEditModal', false)" class="px-4 py-2 border border-slate-200 rounded-lg">Cancel</button>
                         </div>
                     </form>
                 </div>
@@ -280,14 +297,18 @@
 
     <!-- Delete confirmation modal -->
     @if($confirmingDeleteId)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black opacity-40" wire:click="$set('confirmingDeleteId', null)"></div>
-            <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 overflow-hidden">
-                <div class="p-4">
-                    <p class="text-sm text-red-800">Are you sure you want to delete this account? This cannot be undone.</p>
-                    <div class="mt-3 flex gap-2">
-                        <button wire:click="deleteUser({{ $confirmingDeleteId }})" class="px-3 py-2 bg-red-600 text-white rounded">Yes, delete</button>
-                        <button wire:click="$set('confirmingDeleteId', null)" class="px-3 py-2 border rounded">Cancel</button>
+        <div class="fixed inset-0 z-[1000] overflow-hidden">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="$set('confirmingDeleteId', null)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white/95 shadow-2xl border-l border-slate-200 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-red-50">
+                    <h3 class="text-lg font-semibold text-slate-900">Delete Account</h3>
+                    <button wire:click="$set('confirmingDeleteId', null)" class="text-slate-600 hover:text-slate-800 text-2xl leading-none">&times;</button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-5">
+                    <p class="text-sm text-red-800 font-medium">Are you sure you want to delete this account? This cannot be undone.</p>
+                    <div class="mt-4 flex gap-2">
+                        <button wire:click="deleteUser({{ $confirmingDeleteId }})" class="px-4 py-2 bg-red-600 text-white rounded-lg">Yes, delete</button>
+                        <button wire:click="$set('confirmingDeleteId', null)" class="px-4 py-2 border border-slate-200 rounded-lg">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -296,14 +317,14 @@
 
     <!-- Subscription Modal -->
     @if($showSubscriptionModal && $viewingUser)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black opacity-40" wire:click="closeSubscriptionModal"></div>
-            <div class="relative bg-white rounded-lg shadow-lg w-full max-w-4xl mx-4 overflow-hidden max-h-[90vh] overflow-y-auto">
-                <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white">
+        <div class="fixed inset-0 z-[1000] overflow-hidden">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="closeSubscriptionModal"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-4xl bg-white/95 shadow-2xl border-l border-slate-200 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b bg-white/95">
                     <h3 class="text-lg font-semibold">Subscription Details - {{ $viewingUser->name }}</h3>
-                    <button wire:click="closeSubscriptionModal" class="text-slate-600 hover:text-slate-800">&times;</button>
+                    <button wire:click="closeSubscriptionModal" class="text-slate-600 hover:text-slate-800 text-2xl leading-none">&times;</button>
                 </div>
-                <div class="p-6">
+                <div class="flex-1 overflow-y-auto p-5">
                     <!-- User Info -->
                     <div class="mb-6 bg-slate-50 rounded-lg p-4 border border-slate-200">
                         <div class="grid grid-cols-2 gap-4 text-sm">

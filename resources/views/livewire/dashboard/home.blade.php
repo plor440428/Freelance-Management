@@ -1,30 +1,30 @@
-<div class="space-y-6">
+<div class="space-y-8" style="font-family: 'IBM Plex Sans Thai', sans-serif;">
     @if(auth()->user()->role === 'admin')
         <!-- Admin Dashboard -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-                <h3 class="text-3xl font-bold text-slate-900">Admin Dashboard</h3>
-                <p class="text-sm text-slate-600 mt-1">ภาพรวมระบบและสถิติทั้งหมด</p>
+                <h3 class="dash-title text-3xl font-semibold text-slate-900">Admin Dashboard</h3>
+                <p class="text-sm sm:text-base text-slate-600 mt-2">ภาพรวมระบบและสถิติทั้งหมด</p>
             </div>
-            <div class="text-sm text-slate-500">
+            <div class="text-xs sm:text-sm text-slate-500 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200">
                 {{ now()->format('l, F j, Y') }}
             </div>
         </div>
 
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="dash-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
             <!-- Total Projects -->
-            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition">
+            <div class="bg-gradient-to-br from-sky-500 to-sky-600 rounded-2xl shadow-md hover:shadow-lg p-6 sm:p-7 text-white transform hover:scale-[1.02] transition-all duration-200">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-blue-100 text-sm font-medium mb-1">โปรเจกต์ทั้งหมด</p>
-                        <p class="text-4xl font-bold">{{ $totalProjects }}</p>
-                        <p class="text-blue-100 text-xs mt-2">
+                    <div class="flex-1">
+                        <p class="text-sky-100 text-sm font-medium mb-2">โปรเจกต์ทั้งหมด</p>
+                        <p class="text-4xl sm:text-5xl font-bold">{{ $totalProjects }}</p>
+                        <p class="text-sky-100 text-xs sm:text-sm mt-3">
                             {{ $activeProjects }} ดำเนินการ • {{ $completedProjects }} เสร็จสิ้น
                         </p>
                     </div>
-                    <div class="p-4 bg-white/20 rounded-full">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="p-3 sm:p-4 bg-white/20 rounded-2xl">
+                        <svg class="w-8 h-8 sm:w-10 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                         </svg>
                     </div>
@@ -32,17 +32,17 @@
             </div>
 
             <!-- Total Users -->
-            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition">
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-md hover:shadow-lg p-6 sm:p-7 text-white transform hover:scale-[1.02] transition-all duration-200">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-purple-100 text-sm font-medium mb-1">ผู้ใช้ทั้งหมด</p>
-                        <p class="text-4xl font-bold">{{ $totalUsers }}</p>
-                        <p class="text-purple-100 text-xs mt-2">
+                    <div class="flex-1">
+                        <p class="text-purple-100 text-sm font-medium mb-2">ผู้ใช้ทั้งหมด</p>
+                        <p class="text-4xl sm:text-5xl font-bold">{{ $totalUsers }}</p>
+                        <p class="text-purple-100 text-xs sm:text-sm mt-3">
                             {{ $approvedUsers }} อนุมัติแล้ว • {{ $pendingApprovals }} รออนุมัติ
                         </p>
                     </div>
-                    <div class="p-4 bg-white/20 rounded-full">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="p-3 sm:p-4 bg-white/20 rounded-2xl">
+                        <svg class="w-8 h-8 sm:w-10 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
                     </div>
@@ -50,12 +50,12 @@
             </div>
 
             <!-- Total Tasks -->
-            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition">
+            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-md hover:shadow-lg p-6 sm:p-7 text-white transform hover:scale-[1.02] transition-all duration-200">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-green-100 text-sm font-medium mb-1">งานทั้งหมด</p>
-                        <p class="text-4xl font-bold">{{ $totalTasks }}</p>
-                        <p class="text-green-100 text-xs mt-2">
+                    <div class="flex-1">
+                        <p class="text-green-100 text-sm font-medium mb-2">งานทั้งหมด</p>
+                        <p class="text-4xl sm:text-5xl font-bold">{{ $totalTasks }}</p>
+                        <p class="text-green-100 text-xs sm:text-sm mt-3">
                             {{ $inProgressTasks }} กำลังทำ • {{ $completedTasks }} เสร็จแล้ว
                         </p>
                     </div>
@@ -87,7 +87,7 @@
         </div>
 
         <!-- Charts Row -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="dash-grid grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- User Role Distribution -->
             <div class="bg-white rounded-xl shadow-lg p-6">
                 <h4 class="font-bold text-slate-900 mb-4 flex items-center">
@@ -201,7 +201,7 @@
         <!-- Freelance Dashboard -->
         <div class="flex items-center justify-between">
             <div>
-                <h3 class="text-3xl font-bold text-slate-900">สวัสดี, {{ auth()->user()->name }}!</h3>
+                <h3 class="dash-title text-3xl font-bold text-slate-900">สวัสดี, {{ auth()->user()->name }}!</h3>
                 <p class="text-sm text-slate-600 mt-1">ภาพรวมโปรเจกต์และงานของคุณ</p>
             </div>
             <div class="text-sm text-slate-500">
@@ -210,7 +210,7 @@
         </div>
 
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="dash-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <!-- Total Projects -->
             <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition">
                 <div class="flex items-center justify-between">
@@ -285,7 +285,7 @@
         </div>
 
         <!-- Charts Row -->
-        <div class="grid grid-cols-1 gap-6">
+        <div class="dash-grid grid grid-cols-1 gap-6">
             <!-- Task Status Distribution -->
             <div class="bg-white rounded-xl shadow-lg p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -354,6 +354,7 @@
                                 <span class="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap
                                     @if($project->status === 'active') bg-green-100 text-green-800
                                     @elseif($project->status === 'completed') bg-blue-100 text-blue-800
+                                    @elseif($project->status === 'cancelled') bg-red-100 text-red-700
                                     @else bg-slate-100 text-slate-800
                                     @endif">
                                     {{ ucfirst($project->status) }}
@@ -425,7 +426,7 @@
         <!-- Customer Dashboard -->
         <div class="flex items-center justify-between">
             <div>
-                <h3 class="text-3xl font-bold text-slate-900">สวัสดี, {{ auth()->user()->name }}!</h3>
+                <h3 class="dash-title text-3xl font-bold text-slate-900">สวัสดี, {{ auth()->user()->name }}!</h3>
                 <p class="text-sm text-slate-600 mt-1">ภาพรวมโปรเจกต์ของคุณ</p>
             </div>
             <div class="text-sm text-slate-500">
@@ -434,7 +435,7 @@
         </div>
 
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="dash-grid grid grid-cols-1 md:grid-cols-4 gap-6">
             <!-- Total Projects -->
             <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition">
                 <div class="flex items-center justify-between">
@@ -497,7 +498,7 @@
         </div>
 
         <!-- Charts Row -->
-        <div class="grid grid-cols-1 gap-6">
+        <div class="dash-grid grid grid-cols-1 gap-6">
             <!-- Project Status Distribution -->
             <div class="bg-white rounded-xl shadow-lg p-6">
                 <h4 class="font-bold text-slate-900 mb-4 flex items-center">
@@ -545,6 +546,7 @@
                             <span class="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap
                                 @if($project->status === 'active') bg-green-100 text-green-800
                                 @elseif($project->status === 'completed') bg-blue-100 text-blue-800
+                                @elseif($project->status === 'cancelled') bg-red-100 text-red-700
                                 @else bg-yellow-100 text-yellow-800
                                 @endif">
                                 {{ ucfirst($project->status) }}
