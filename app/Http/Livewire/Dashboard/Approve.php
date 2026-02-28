@@ -37,7 +37,11 @@ class Approve extends Component
             $q->latest();
         }])->find($userId);
 
-        $this->selectedProof = $this->selectedUser->paymentProofs->first();
+        // Select pending proof first, then fall back to latest
+        $this->selectedProof = $this->selectedUser->paymentProofs
+            ->firstWhere('status', 'pending') 
+            ?? $this->selectedUser->paymentProofs->first();
+        
         $this->showUserDetail = true;
         $this->adminNote = '';
     }

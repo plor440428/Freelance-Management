@@ -25,6 +25,7 @@ class Register extends Component
     public $role = 'customer';
     public $profile_image = null;
     public $payment_slip = null;
+    public $isSubmitting = false;
 
     protected $rules = [
         'name' => 'required|string|min:3|max:255',
@@ -88,10 +89,17 @@ class Register extends Component
 
     public function register()
     {
+        if ($this->isSubmitting) {
+            return;
+        }
+
+        $this->isSubmitting = true;
+
         try {
             $paymentProof = null;
 
             // Validate all inputs
+            $this->resetErrorBag();
             $validatedData = $this->validate();
 
             \Log::info('=== Registration Started ===', [
@@ -274,6 +282,8 @@ class Register extends Component
             ]);
 
             session()->flash('error', 'Registration failed: ' . $e->getMessage());
+        } finally {
+            $this->isSubmitting = false;
         }
     }
 

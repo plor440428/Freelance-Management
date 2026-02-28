@@ -55,11 +55,17 @@ class Projects extends Component
     public function toggleFreelanceDropdown()
     {
         $this->showFreelanceDropdown = !$this->showFreelanceDropdown;
+        if ($this->showFreelanceDropdown) {
+            $this->showCustomerDropdown = false;
+        }
     }
 
     public function toggleCustomerDropdown()
     {
         $this->showCustomerDropdown = !$this->showCustomerDropdown;
+        if ($this->showCustomerDropdown) {
+            $this->showFreelanceDropdown = false;
+        }
     }
 
     public function toggleFreelanceFilter($id)

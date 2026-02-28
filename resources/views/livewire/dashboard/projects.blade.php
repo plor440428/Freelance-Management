@@ -26,7 +26,7 @@
 
     <div class="max-w-7xl mx-auto px-6">
         <!-- Search & Filter Section -->
-        <div class="dash-panel rounded-xl p-6 mb-8 border border-gray-200">
+        <div class="dash-panel rounded-xl p-6 mb-8 border border-gray-200 relative z-30 overflow-visible">
             <div class="mb-4">
                 <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Filter Projects</h4>
             </div>
@@ -55,7 +55,7 @@
                 </div>
 
                 <!-- Freelancer Multi-Select -->
-                <div class="relative">
+                <div class="relative z-40">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Freelancers</label>
                     <button wire:click="toggleFreelanceDropdown"
                             type="button"
@@ -73,7 +73,7 @@
                     </button>
 
                     @if($showFreelanceDropdown)
-                        <div class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-xl z-20 max-h-64 overflow-hidden flex flex-col">
+                        <div class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-2xl z-[70] max-h-64 overflow-hidden flex flex-col">
                             <input type="text"
                                    wire:model.live="freelanceSearch"
                                    placeholder="Search freelancers..."
@@ -108,7 +108,7 @@
                 </div>
 
                 <!-- Customer Multi-Select -->
-                <div class="relative">
+                <div class="relative z-40">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Customers</label>
                     <button wire:click="toggleCustomerDropdown"
                             type="button"
@@ -126,7 +126,7 @@
                     </button>
 
                     @if($showCustomerDropdown)
-                        <div class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-xl z-20 max-h-64 overflow-hidden flex flex-col">
+                        <div class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-2xl z-[70] max-h-64 overflow-hidden flex flex-col">
                             <input type="text"
                                    wire:model.live="customerSearch"
                                    placeholder="Search customers..."
@@ -176,7 +176,7 @@
         </div>
 
         <!-- Projects Grid -->
-        <div class="dash-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div class="dash-grid relative z-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             @forelse($projects as $project)
                 <a wire:navigate href="/dashboard/projects/{{ $project->id }}" class="bg-white rounded-xl shadow hover:shadow-2xl hover:scale-105 transition p-6 cursor-pointer block border border-gray-200 hover:border-blue-500/50">
                     <!-- Project Status Badge -->

@@ -3,11 +3,11 @@
     <div class="bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-xl shadow-sm p-7 mb-8 border border-gray-100">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-5">
-                <button onclick="window.history.back()" class="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition">
+                <a href="{{ route('dashboard.projects') }}" class="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition inline-flex">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
-                </button>
+                </a>
                 <div class="border-l border-gray-200 pl-5">
                     <h1 class="dash-title text-3xl font-black text-gray-900">{{ $project->name }}</h1>
                     <p class="text-sm text-gray-500 mt-1.5 font-medium">

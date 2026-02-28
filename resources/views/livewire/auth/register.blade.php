@@ -86,6 +86,13 @@
                                     {{ $profile_image ? 'Change Profile Picture' : 'Choose Profile Picture' }}
                                 </button>
                             </div>
+                            <div wire:loading wire:target="profile_image" class="mt-2 inline-flex items-center gap-2 text-sm text-slate-600">
+                                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                </svg>
+                                <span>กำลังอัปโหลดรูปโปรไฟล์...</span>
+                            </div>
                             @error('profile_image') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
 
                             @if ($profile_image)
@@ -263,6 +270,13 @@
                                     {{ $payment_slip ? 'เปลี่ยนสลิป' : 'อัปโหลดสลิปการโอนเงิน' }}
                                 </button>
                                 </div>
+                                <div wire:loading wire:target="payment_slip" class="mt-2 inline-flex items-center gap-2 text-sm text-slate-600">
+                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                    </svg>
+                                    <span>กำลังอัปโหลดสลิป...</span>
+                                </div>
                                 <p class="mt-2 text-xs text-slate-500">รองรับไฟล์รูปภาพหรือ PDF ขนาดไม่เกิน 5MB</p>
                                 @error('payment_slip') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
 
@@ -279,14 +293,23 @@
                             <button
                                 type="submit"
                                 wire:loading.attr="disabled"
+                                wire:target="register,profile_image,payment_slip"
+                                @disabled($isSubmitting)
                                 class="w-full sm:w-auto cursor-pointer flex justify-center items-center py-3 px-6 rounded-lg text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900">
-                                <span wire:loading.remove>Create Account</span>
-                                <div wire:loading class="inline-flex flex-row items-center justify-center">
+                                <span wire:loading.remove wire:target="register,profile_image,payment_slip">Create Account</span>
+                                <div wire:loading wire:target="register" class="inline-flex flex-row items-center justify-center">
                                     <svg class="animate-spin h-5 w-5 text-white inline-flex items-center justify-center" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                                     </svg>
                                     <div>Creating account...</div>
+                                </div>
+                                <div wire:loading wire:target="profile_image,payment_slip" class="inline-flex flex-row items-center justify-center gap-2">
+                                    <svg class="animate-spin h-5 w-5 text-white inline-flex items-center justify-center" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                    </svg>
+                                    <div>Uploading file...</div>
                                 </div>
                             </button>
                         </div>

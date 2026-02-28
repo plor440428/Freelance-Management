@@ -41,7 +41,7 @@
     </div>
 
     <!-- Pending Users List -->
-    @if($filterStatus === 'pending' || $filterStatus === 'all')
+    @if(($filterStatus === 'pending' || $filterStatus === 'all') && $filterStatus !== 'all')
         <div class="dash-panel rounded-2xl overflow-hidden mb-8">
             <div class="px-6 py-4 border-b border-slate-200">
                 <h4 class="font-semibold text-lg">
@@ -150,7 +150,7 @@
     @endif
 
     <!-- Approved Users List -->
-    @if($filterStatus === 'approved' || $filterStatus === 'all')
+    @if(($filterStatus === 'approved' || $filterStatus === 'all') && $filterStatus !== 'all')
         <div class="dash-panel rounded-2xl overflow-hidden mb-8">
             <div class="px-6 py-4 border-b border-slate-200">
                 <h4 class="font-semibold text-lg">
@@ -329,83 +329,206 @@
         </div>
     @endif
 
-    <!-- All Users List -->
-    @if($filterStatus === 'all' && $users->isNotEmpty())
-        <div class="dash-panel rounded-2xl overflow-hidden mb-8">
-            <div class="px-6 py-4 border-b border-slate-200">
-                <h4 class="font-semibold text-lg">All Users ({{ $users->total() }})</h4>
-            </div>
+    <!-- All Users List - Grouped by Status -->
+    @if($filterStatus === 'all')
+        @php
+            $allPending = collect();
+            $allApproved = collect();
+            $allRejected = collect();
+            
+            foreach($users as $user) {
+                if($user->is_approved) {
+                    $allApproved->push($user);
+                } elseif($user->rejection_reason) {
+                    $allRejected->push($user);
+                } else {
+                    $allPending->push($user);
+                }
+            }
+        @endphp
 
-            <table class="w-full">
-                <thead class="bg-slate-50/80">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">User</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Role</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Registered</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                    @foreach($users as $user)
-                        @php
-                            $proof = $user->paymentProofs->first();
-                        @endphp
-                        <tr class="hover:bg-slate-50">
-                            <td class="px-6 py-4">
-                                <div class="flex items-center">
-                                    @if($user->profile_image_path)
-                                        <img src="{{ $user->profile_image_url }}"
-                                             class="w-8 h-8 rounded-full mr-2" alt="{{ $user->name }}">
-                                    @else
-                                        <div class="w-8 h-8 rounded-full bg-slate-400 flex items-center justify-center text-white text-xs font-semibold mr-2">
-                                            {{ substr($user->name, 0, 1) }}
+        <!-- Pending Users in All Tab -->
+        @if($allPending->isNotEmpty())
+            <div class="dash-panel rounded-2xl overflow-hidden mb-8">
+                <div class="px-6 py-4 border-b border-slate-200">
+                    <h4 class="font-semibold text-lg">Pending Approvals ({{ $allPending->count() }})</h4>
+                </div>
+
+                <table class="w-full">
+                    <thead class="bg-slate-50/80">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Registered</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        @foreach($allPending as $user)
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        @if($user->profile_image_path)
+                                            <img src="{{ $user->profile_image_url }}"
+                                                 class="w-8 h-8 rounded-full mr-2" alt="{{ $user->name }}">
+                                        @else
+                                            <div class="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                                {{ substr($user->name, 0, 1) }}
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <div class="font-medium text-sm">{{ $user->name }}</div>
+                                            <div class="text-xs text-slate-500">{{ $user->email }}</div>
                                         </div>
-                                    @endif
-                                    <div>
-                                        <div class="font-medium text-sm">{{ $user->name }}</div>
-                                        <div class="text-xs text-slate-500">{{ $user->email }}</div>
                                     </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full
-                                    {{ $user->role === 'freelance' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
-                                    {{ ucfirst($user->role) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-sm">
-                                @if($user->is_approved)
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Approved</span>
-                                @elseif($user->rejection_reason)
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700">Rejected</span>
-                                @else
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                        {{ $user->role === 'freelance' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
+                                        {{ ucfirst($user->role) }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm">
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700">Pending</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 text-sm text-slate-600">
-                                {{ $user->created_at->diffForHumans() }}
-                            </td>
-                            <td class="px-6 py-4">
-                                @if(!$user->is_approved && !$user->rejection_reason)
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-600">
+                                    {{ $user->created_at->diffForHumans() }}
+                                </td>
+                                <td class="px-6 py-4">
                                     <button wire:click="viewUser({{ $user->id }})"
                                             class="text-blue-600 hover:text-blue-800 font-medium text-sm">
                                         Review
                                     </button>
-                                @else
-                                    <span class="text-slate-400 text-sm">-</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-            <!-- Pagination -->
-            <div class="px-6 py-4 border-t border-slate-200">
-                {{ $users->links() }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        </div>
+        @endif
+
+        <!-- Approved Users in All Tab -->
+        @if($allApproved->isNotEmpty())
+            <div class="dash-panel rounded-2xl overflow-hidden mb-8">
+                <div class="px-6 py-4 border-b border-slate-200">
+                    <h4 class="font-semibold text-lg">Approved Users ({{ $allApproved->count() }})</h4>
+                </div>
+
+                <table class="w-full">
+                    <thead class="bg-slate-50/80">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Registered</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        @foreach($allApproved as $user)
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        @if($user->profile_image_path)
+                                            <img src="{{ $user->profile_image_url }}"
+                                                 class="w-8 h-8 rounded-full mr-2" alt="{{ $user->name }}">
+                                        @else
+                                            <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                                {{ substr($user->name, 0, 1) }}
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <div class="font-medium text-sm">{{ $user->name }}</div>
+                                            <div class="text-xs text-slate-500">{{ $user->email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                        {{ $user->role === 'freelance' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
+                                        {{ ucfirst($user->role) }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Approved</span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-600">
+                                    {{ $user->created_at->diffForHumans() }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="text-slate-400 text-sm">-</span>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+
+        <!-- Rejected Users in All Tab -->
+        @if($allRejected->isNotEmpty())
+            <div class="dash-panel rounded-2xl overflow-hidden mb-8">
+                <div class="px-6 py-4 border-b border-slate-200">
+                    <h4 class="font-semibold text-lg">Rejected Users ({{ $allRejected->count() }})</h4>
+                </div>
+
+                <table class="w-full">
+                    <thead class="bg-slate-50/80">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Registered</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        @foreach($allRejected as $user)
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        @if($user->profile_image_path)
+                                            <img src="{{ $user->profile_image_url }}"
+                                                 class="w-8 h-8 rounded-full mr-2" alt="{{ $user->name }}">
+                                        @else
+                                            <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                                {{ substr($user->name, 0, 1) }}
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <div class="font-medium text-sm">{{ $user->name }}</div>
+                                            <div class="text-xs text-slate-500">{{ $user->email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                        {{ $user->role === 'freelance' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
+                                        {{ ucfirst($user->role) }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700">Rejected</span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-600">
+                                    {{ $user->created_at->diffForHumans() }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="text-slate-400 text-sm">-</span>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+
+        @if($allPending->isEmpty() && $allApproved->isEmpty() && $allRejected->isEmpty())
+            <div class="dash-panel rounded-2xl overflow-hidden p-8 text-center text-slate-500">
+                <p>No users</p>
+            </div>
+        @endif
     @endif
 
     <!-- User Detail Modal -->
@@ -487,6 +610,30 @@
                                 <img src="{{ $selectedProof->proof_file_url }}"
                                      alt="Payment Slip"
                                      class="w-full max-h-[600px] object-contain rounded-lg shadow-sm">
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Show Old Payment Proof if User Submitted Revision -->
+                    @php
+                        $otherProofs = $selectedUser->paymentProofs->where('status', '!=', $selectedProof?->status ?? 'pending');
+                    @endphp
+                    @if($otherProofs->count() > 0 && $selectedProof->status === 'pending')
+                        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                            <h5 class="font-semibold mb-3 text-lg text-slate-900">ข้อมูลการแก้ไข</h5>
+                            <p class="text-sm text-slate-600 mb-4">ผู้ใช้ได้ส่งข้อมูลแก้ไขใหม่หลังจากถูกปฏิเสธ เปรียบเทียบการเปลี่ยนแปลงด้านล่าง:</p>
+                            
+                            <div class="space-y-3">
+                                @foreach($otherProofs as $oldProof)
+                                    <div class="bg-white rounded-lg p-3 border border-slate-200">
+                                        <p class="text-xs font-semibold text-slate-500 uppercase mb-2">Payment Slip เก่า (สถานะ: {{ ucfirst($oldProof->status) }})</p>
+                                        <div class="border border-slate-200 rounded-lg p-3 bg-slate-50 overflow-hidden">
+                                            <img src="{{ $oldProof->proof_file_url }}"
+                                                 alt="Old Payment Slip"
+                                                 class="w-full max-h-[300px] object-contain rounded shadow-sm">
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif

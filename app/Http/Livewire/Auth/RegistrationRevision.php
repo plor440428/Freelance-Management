@@ -100,6 +100,19 @@ class RegistrationRevision extends Component
                 'proof_file' => $slipPath,
                 'status' => 'pending',
             ]);
+        } else {
+            // Create a pending payment proof entry even without file
+            // to enable admin review buttons
+            $lastProof = PaymentProof::where('user_id', $this->user->id)->latest()->first();
+            if ($lastProof) {
+                PaymentProof::create([
+                    'user_id' => $this->user->id,
+                    'subscription_type' => $lastProof->subscription_type,
+                    'amount' => $lastProof->amount,
+                    'proof_file' => $lastProof->proof_file,
+                    'status' => 'pending',
+                ]);
+            }
         }
 
         ApprovalLog::create([
@@ -136,9 +149,13 @@ class RegistrationRevision extends Component
             'message' => 'ส่งข้อมูลแก้ไขเรียบร้อยแล้ว แอดมินจะพิจารณาอีกครั้ง',
         ]);
 
-        $this->dispatch('revision-submitted', [
-            'loginUrl' => route('login'),
+        // Store success flag in session for admin notification
+        session()->flash('user.revision.submitted', [
+            'user_id' => $this->user->id,
+            'user_name' => $this->user->name,
         ]);
+
+        $this->redirect(route('login'), navigate: true);
     }
 
     public function render()
