@@ -88,13 +88,13 @@ class Tasks extends Component
         $user = Auth::user();
 
         // Get tasks based on user role
-        $tasksQuery = Task::with(['project', 'assignee', 'creator'])
-            ->whereHas('project', function($q) {
-                $q->where('status', 'active');
-            });
+        $tasksQuery = Task::with(['project', 'assignee', 'creator']);
 
         // Admin sees all tasks, others see only assigned or created tasks
         if ($user->role !== 'admin') {
+            $tasksQuery->whereHas('project', function($q) {
+                $q->where('status', 'active');
+            });
             $tasksQuery->where(function($q) use ($user) {
                 $q->where('assigned_to', $user->id)
                   ->orWhere('created_by', $user->id);

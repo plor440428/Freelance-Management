@@ -82,8 +82,8 @@
     @endif
 
     @if($showCancelModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
-            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="closeCancelModal"></div>
+        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+            <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="closeCancelModal"></div>
             <div class="absolute inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
                     <h3 class="text-lg font-black text-gray-900">ยืนยันการยกเลิกโปรเจกต์</h3>
@@ -527,8 +527,8 @@
 
     <!-- Edit Project Details Modal -->
     @if($showEditModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
-            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('showEditModal', false)"></div>
+        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+            <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('showEditModal', false)"></div>
             <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Edit Project Details</h3>
@@ -588,8 +588,8 @@
 
     <!-- Edit Customers Modal -->
     @if($showEditCustomersModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
-            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('showEditCustomersModal', false)"></div>
+        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+            <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('showEditCustomersModal', false)"></div>
             <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Manage Customers</h3>
@@ -641,8 +641,8 @@
 
     <!-- Edit Team Members Modal -->
     @if($showEditTeamMembersModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
-            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('showEditTeamMembersModal', false)"></div>
+        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+            <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('showEditTeamMembersModal', false)"></div>
             <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Manage Team Members</h3>
@@ -694,8 +694,8 @@
 
     <!-- Edit Freelance Modal -->
     @if($showEditFreelanceModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
-            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('showEditFreelanceModal', false)"></div>
+        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+            <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('showEditFreelanceModal', false)"></div>
             <div class="absolute inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Assign Freelance</h3>
@@ -754,8 +754,8 @@
 
     <!-- Delete Project Confirmation -->
     @if($confirmingDeleteId)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
-            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('confirmingDeleteId', null)"></div>
+        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+            <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('confirmingDeleteId', null)"></div>
             <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
                     <h3 class="text-lg font-black text-gray-900">Delete Project</h3>
@@ -781,8 +781,8 @@
 
     <!-- Delete Task Confirmation -->
     @if($confirmingDeleteTaskId)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
-            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('confirmingDeleteTaskId', null)"></div>
+        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+            <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('confirmingDeleteTaskId', null)"></div>
             <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
                     <h3 class="text-lg font-black text-gray-900">Delete Task</h3>
@@ -808,8 +808,8 @@
 
     <!-- Delete File Confirmation -->
     @if($confirmingDeleteFileId)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
-            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('confirmingDeleteFileId', null)"></div>
+        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+            <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('confirmingDeleteFileId', null)"></div>
             <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
                     <h3 class="text-lg font-black text-gray-900">Delete File</h3>
