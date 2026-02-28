@@ -395,18 +395,26 @@
                             <p class="text-xs font-medium text-gray-600">No freelance assigned</p>
                         </div>
                     @endif
+                    @php
+                        $creator = $project->creator;
+                    @endphp
+                    @if($creator && $creator->role === 'admin')
+                        <div class="mt-3 p-2 bg-blue-50 border border-blue-100 rounded-lg flex items-start gap-2">
+                            <span class="text-xs text-blue-600 font-semibold">Created by Admin</span>
+                        </div>
+                    @endif
                 </div>
             @endif
 
-            <!-- Project Managers -->
+            <!-- Team Members -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
                         <div class="w-1 h-4 bg-gradient-to-b from-emerald-500 to-emerald-400 rounded-full"></div>
-                        <h4 class="font-black text-gray-900 text-sm uppercase tracking-widest">Project Managers</h4>
+                        <h4 class="font-black text-gray-900 text-sm uppercase tracking-widest">Team Members</h4>
                     </div>
                     @if(auth()->user()->role !== 'customer')
-                        <button wire:click="editManagers" class="text-xs text-blue-600 hover:text-blue-700 font-semibold">
+                        <button wire:click="editTeamMembers" class="text-xs text-blue-600 hover:text-blue-700 font-semibold">
                             {{ $project->managers->count() > 0 ? 'Edit' : 'Add' }}
                         </button>
                     @endif
@@ -424,7 +432,7 @@
                         @endforeach
                     </div>
                 @else
-                    <p class="text-sm font-medium text-gray-500">No managers assigned</p>
+                    <p class="text-sm font-medium text-gray-500">No team members assigned</p>
                 @endif
             </div>
 
@@ -631,52 +639,52 @@
         </div>
     @endif
 
-    <!-- Edit Managers Modal -->
-    @if($showEditManagersModal)
+    <!-- Edit Team Members Modal -->
+    @if($showEditTeamMembersModal)
         <div class="fixed inset-0 z-[1000] overflow-hidden">
-            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('showEditManagersModal', false)"></div>
+            <div class="absolute inset-0 bg-black/50 z-[1000]" wire:click="$set('showEditTeamMembersModal', false)"></div>
             <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-white">
-                    <h3 class="text-lg font-black text-gray-900">Manage Project Managers</h3>
-                    <button wire:click="$set('showEditManagersModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
+                    <h3 class="text-lg font-black text-gray-900">Manage Team Members</h3>
+                    <button wire:click="$set('showEditTeamMembersModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
 
                 <div class="flex-1 overflow-y-auto p-5">
-                    <form wire:submit.prevent="updateManagers" class="space-y-4">
+                    <form wire:submit.prevent="updateTeamMembers" class="space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-3 uppercase tracking-widest">Select Managers (Freelances Only)</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-3 uppercase tracking-widest">Select Team Members (Freelances Only)</label>
                             <div class="flex gap-2 mb-4">
-                                <input type="text" wire:model.defer="managerSearchQuery" placeholder="Search by email or name..." class="flex-1 border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
-                                <button type="button" wire:click="searchManagers" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Search</button>
+                                <input type="text" wire:model.defer="teamMemberSearchQuery" placeholder="Search by email or name..." class="flex-1 border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
+                                <button type="button" wire:click="searchTeamMembers" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Search</button>
                             </div>
                             <div class="space-y-1 border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto bg-white">
-                                @forelse($availableManagers as $manager)
+                                @forelse($availableTeamMembers as $member)
                                     <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-3 py-2.5 rounded-lg transition group">
-                                        <input type="checkbox" wire:model.defer="selectedManagers" value="{{ $manager->id }}" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                                        <img src="{{ $manager->profile_image_url }}" alt="{{ $manager->name }}" class="w-8 h-8 rounded-full flex-shrink-0" />
+                                        <input type="checkbox" wire:model.defer="selectedTeamMembers" value="{{ $member->id }}" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                        <img src="{{ $member->profile_image_url }}" alt="{{ $member->name }}" class="w-8 h-8 rounded-full flex-shrink-0" />
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-semibold text-gray-900">{{ $manager->name }}</p>
-                                            <p class="text-xs text-gray-600 truncate">{{ $manager->email }} • {{ ucfirst($manager->role) }}</p>
+                                            <p class="text-sm font-semibold text-gray-900">{{ $member->name }}</p>
+                                            <p class="text-xs text-gray-600 truncate">{{ $member->email }} • {{ ucfirst($member->role) }}</p>
                                         </div>
                                     </label>
                                 @empty
-                                    <p class="text-sm text-gray-500 text-center py-8">No managers found</p>
+                                    <p class="text-sm text-gray-500 text-center py-8">No team members found</p>
                                 @endforelse
                             </div>
-                            @error('selectedManagers') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
+                            @error('selectedTeamMembers') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
                         </div>
 
                         <div class="flex gap-3 pt-4 border-t border-gray-200">
                             <button type="submit" wire:loading.attr="disabled" class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
-                                <span wire:loading.remove wire:target="updateManagers">Save Changes</span>
-                                <span wire:loading wire:target="updateManagers" class="flex items-center gap-2">
+                                <span wire:loading.remove wire:target="updateTeamMembers">Save Changes</span>
+                                <span wire:loading wire:target="updateTeamMembers" class="flex items-center gap-2">
                                     <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                                     </svg>
                                 </span>
                             </button>
-                            <button type="button" wire:click="$set('showEditManagersModal', false)" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+                            <button type="button" wire:click="$set('showEditTeamMembersModal', false)" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
                         </div>
                     </form>
                 </div>

@@ -12,6 +12,8 @@ use App\Models\Task;
 use App\Models\User;
 use App\Models\File;
 use App\Mail\ProjectStatusUpdatedNotification;
+use App\Mail\ProjectManagerAssignedNotification;
+use App\Mail\ProjectCustomerAssignedNotification;
 
 class ProjectDetail extends Component
 {
@@ -24,7 +26,7 @@ class ProjectDetail extends Component
     public $showEditCustomersModal = false;
     public $showUploadFilesModal = false;
     public $showEditFreelanceModal = false;
-    public $showEditManagersModal = false;
+    public $showEditTeamMembersModal = false;
     public $confirmingDeleteId = null;
     public $confirmingDeleteTaskId = null;
     public $confirmingDeleteFileId = null;
@@ -35,7 +37,7 @@ class ProjectDetail extends Component
     public $status;
     public $selectedCustomers = [];
     public $selectedFreelance = null;
-    public $selectedManagers = [];
+    public $selectedTeamMembers = [];
     public $showCancelModal = false;
     public $cancelReason = '';
     public $pendingStatus = null;
@@ -50,7 +52,7 @@ class ProjectDetail extends Component
 
     // Search fields for modals
     public $customerSearchQuery = '';
-    public $managerSearchQuery = '';
+    public $teamMemberSearchQuery = '';
     public $freelanceSearchQuery = '';
 
     public function mount($id)
@@ -129,7 +131,7 @@ class ProjectDetail extends Component
         // Just trigger re-render with current search query
     }
 
-    public function searchManagers()
+    public function searchTeamMembers()
     {
         // Just trigger re-render with current search query
     }
@@ -307,8 +309,28 @@ class ProjectDetail extends Component
                 return;
             }
 
+            // Get old customer IDs before syncing
+            $oldCustomerIds = $this->project->customers->pluck('id')->toArray();
+
             // Update customers
             $this->project->customers()->sync($this->selectedCustomers);
+
+            // Send email to newly added customers
+            $newCustomerIds = array_diff($this->selectedCustomers, $oldCustomerIds);
+            if (!empty($newCustomerIds)) {
+                $newCustomers = User::whereIn('id', $newCustomerIds)->get();
+                foreach ($newCustomers as $customer) {
+                    try {
+                        Mail::to($customer->email)->send(new ProjectCustomerAssignedNotification($this->project, $customer));
+                    } catch (\Throwable $e) {
+                        \Log::error('Failed to send customer assignment email', [
+                            'project_id' => $this->project->id,
+                            'customer_id' => $customer->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
 
             $this->dispatch('notify', message: 'Customers updated successfully!', type: 'success');
             $this->showEditCustomersModal = false;
@@ -318,41 +340,61 @@ class ProjectDetail extends Component
         }
     }
 
-    public function editManagers()
+    public function editTeamMembers()
     {
         // Check authorization - admin, creator, or assigned freelance
         $user = Auth::user();
         if ($user->role !== 'admin' && $this->project->created_by !== $user->id && $this->project->freelance_id !== $user->id) {
-            $this->dispatch('notify', message: 'You do not have permission to manage project managers.', type: 'warning');
+            $this->dispatch('notify', message: 'You do not have permission to manage team members.', type: 'warning');
             return;
         }
 
-        $this->selectedManagers = $this->project->managers->pluck('id')->toArray();
-        $this->showEditManagersModal = true;
+        $this->selectedTeamMembers = $this->project->managers->pluck('id')->toArray();
+        $this->showEditTeamMembersModal = true;
     }
 
-    public function updateManagers()
+    public function updateTeamMembers()
     {
         try {
             $this->validate([
-                'selectedManagers' => 'array',
+                'selectedTeamMembers' => 'array',
             ]);
 
             // Check authorization - admin, creator, or assigned freelance
             $user = Auth::user();
             if ($user->role !== 'admin' && $this->project->created_by !== $user->id && $this->project->freelance_id !== $user->id) {
-                $this->dispatch('notify', message: 'You do not have permission to manage project managers.', type: 'warning');
+                $this->dispatch('notify', message: 'You do not have permission to manage team members.', type: 'warning');
                 return;
             }
 
-            // Update managers
-            $this->project->managers()->sync($this->selectedManagers);
+            // Get old team member IDs before syncing
+            $oldTeamMemberIds = $this->project->managers->pluck('id')->toArray();
 
-            $this->dispatch('notify', message: 'Project managers updated successfully!', type: 'success');
-            $this->showEditManagersModal = false;
+            // Update team members
+            $this->project->managers()->sync($this->selectedTeamMembers);
+
+            // Send email to newly added team members
+            $newTeamMemberIds = array_diff($this->selectedTeamMembers, $oldTeamMemberIds);
+            if (!empty($newTeamMemberIds)) {
+                $newTeamMembers = User::whereIn('id', $newTeamMemberIds)->get();
+                foreach ($newTeamMembers as $member) {
+                    try {
+                        Mail::to($member->email)->send(new ProjectManagerAssignedNotification($this->project, $member));
+                    } catch (\Throwable $e) {
+                        \Log::error('Failed to send team member assignment email', [
+                            'project_id' => $this->project->id,
+                            'member_id' => $member->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+
+            $this->dispatch('notify', message: 'Team members updated successfully!', type: 'success');
+            $this->showEditTeamMembersModal = false;
             $this->loadProject();
         } catch (\Exception $e) {
-            $this->dispatch('notify', message: 'Failed to update managers. ' . $e->getMessage(), type: 'error');
+            $this->dispatch('notify', message: 'Failed to update team members. ' . $e->getMessage(), type: 'error');
         }
     }
 
@@ -751,13 +793,15 @@ class ProjectDetail extends Component
 
     public function render()
     {
-        // Get available managers with search query
-        $availableManagers = User::where('role', 'freelance')
+        // Get available team members with search query (exclude project owner/creator)
+        $availableTeamMembers = User::where('role', 'freelance')
             ->where('is_approved', true)
-            ->when($this->managerSearchQuery, function($q) {
+            ->where('id', '!=', $this->project->created_by) // Exclude project creator
+            ->where('id', '!=', $this->project->freelance_id) // Exclude freelancer if assigned
+            ->when($this->teamMemberSearchQuery, function($q) {
                 $q->where(function($query) {
-                    $query->where('email', 'like', '%' . $this->managerSearchQuery . '%')
-                          ->orWhere('name', 'like', '%' . $this->managerSearchQuery . '%');
+                    $query->where('email', 'like', '%' . $this->teamMemberSearchQuery . '%')
+                          ->orWhere('name', 'like', '%' . $this->teamMemberSearchQuery . '%');
                 });
             })
             ->get();
@@ -791,7 +835,7 @@ class ProjectDetail extends Component
             'customers' => $customers,
             'users' => User::whereIn('role', ['admin', 'freelance', 'customer'])->where('is_approved', true)->get(),
             'freelances' => $freelances,
-            'availableManagers' => $availableManagers,
+            'availableTeamMembers' => $availableTeamMembers,
             'taskAssignees' => $taskAssignees,
         ]);
     }
