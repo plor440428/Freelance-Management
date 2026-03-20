@@ -7,6 +7,7 @@ use Livewire\WithFileUploads;
 use App\Models\File;
 use App\Models\Setting;
 use App\Models\PaymentProof;
+use App\Models\ProjectPaymentProof;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,6 +18,7 @@ class Settings extends Component
     public $profileImage;
     public $previewUrl;
     public $paymentSlipUrl;
+    public $registrationPaymentStatus;
 
     // Profile settings
     public $name;
@@ -49,9 +51,10 @@ class Settings extends Component
         }
 
         // Load payment slip if exists
-        $paymentProof = PaymentProof::where('user_id', $user->id)->first();
-        if ($paymentProof && $paymentProof->payment_slip_path) {
-            $this->paymentSlipUrl = asset('storage/' . $paymentProof->payment_slip_path);
+        $paymentProof = PaymentProof::where('user_id', $user->id)->latest()->first();
+        if ($paymentProof && $paymentProof->proof_file) {
+            $this->paymentSlipUrl = Storage::disk('public')->url($paymentProof->proof_file);
+            $this->registrationPaymentStatus = $paymentProof->status;
         }
 
         // Load pricing settings for admin
@@ -151,6 +154,31 @@ class Settings extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.settings');
+        $user = auth()->user();
+
+        $projectPaymentQuery = ProjectPaymentProof::with(['project', 'user'])
+            ->latest();
+
+        if ($user->role === 'customer') {
+            $projectPaymentQuery->where('user_id', $user->id);
+        } elseif ($user->role === 'freelance') {
+            $projectPaymentQuery->whereHas('project', function ($q) use ($user) {
+                $q->where('freelance_id', $user->id)
+                  ->orWhere('created_by', $user->id);
+            });
+        }
+
+        $projectPaymentHistory = $projectPaymentQuery->limit(100)->get();
+
+        $projectPaymentSummary = [
+            'customer_rounds' => $projectPaymentHistory->where('submitted_as', 'customer')->count(),
+            'freelance_rounds' => $projectPaymentHistory->where('submitted_as', 'freelance')->count(),
+            'my_rounds' => $projectPaymentHistory->where('user_id', $user->id)->count(),
+        ];
+
+        return view('livewire.dashboard.settings', [
+            'projectPaymentHistory' => $projectPaymentHistory,
+            'projectPaymentSummary' => $projectPaymentSummary,
+        ]);
     }
 }

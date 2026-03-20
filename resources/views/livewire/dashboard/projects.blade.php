@@ -228,6 +228,49 @@
                         </div>
                     @endif
 
+                    <div class="mb-4 pb-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Payment History</p>
+                            <span class="text-xs text-gray-500">{{ $project->paymentProofs->count() }} records</span>
+                        </div>
+
+                        @if($project->paymentProofs->isNotEmpty())
+                            <div class="grid grid-cols-3 gap-2 mb-3">
+                                <div class="rounded-lg bg-amber-50 border border-amber-200 px-2 py-2 text-center">
+                                    <p class="text-[10px] font-bold uppercase text-amber-700">Pending</p>
+                                    <p class="text-sm font-black text-amber-800">{{ $project->paymentProofs->where('status', 'pending')->count() }}</p>
+                                </div>
+                                <div class="rounded-lg bg-emerald-50 border border-emerald-200 px-2 py-2 text-center">
+                                    <p class="text-[10px] font-bold uppercase text-emerald-700">Approved</p>
+                                    <p class="text-sm font-black text-emerald-800">{{ $project->paymentProofs->where('status', 'approved')->count() }}</p>
+                                </div>
+                                <div class="rounded-lg bg-red-50 border border-red-200 px-2 py-2 text-center">
+                                    <p class="text-[10px] font-bold uppercase text-red-700">Rejected</p>
+                                    <p class="text-sm font-black text-red-800">{{ $project->paymentProofs->where('status', 'rejected')->count() }}</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                @foreach($project->paymentProofs->sortByDesc('created_at')->take(2) as $payment)
+                                    <div class="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <p class="text-xs font-medium text-gray-900 truncate">{{ $payment->user?->name ?? 'Unknown' }}</p>
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $payment->status === 'approved' ? 'bg-emerald-100 text-emerald-700' : ($payment->status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700') }}">
+                                                {{ $payment->status }}
+                                            </span>
+                                        </div>
+                                        <p class="text-[11px] text-gray-500 mt-1">{{ $payment->created_at->format('d/m/Y H:i') }}</p>
+                                        @if($payment->amount)
+                                            <p class="text-xs font-semibold text-gray-700 mt-1">฿{{ number_format($payment->amount, 2) }}</p>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-xs text-gray-500">No payment history yet</p>
+                        @endif
+                    </div>
+
                     <!-- Stats Footer -->
                     <div class="flex items-center justify-between pt-4 border-t border-gray-200">
                         <div>

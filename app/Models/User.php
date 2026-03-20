@@ -63,6 +63,11 @@ class User extends Authenticatable
         return $this->hasMany(PaymentProof::class);
     }
 
+    public function projectPaymentProofs()
+    {
+        return $this->hasMany(ProjectPaymentProof::class);
+    }
+
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');

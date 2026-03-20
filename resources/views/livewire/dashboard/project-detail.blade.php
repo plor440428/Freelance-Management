@@ -375,8 +375,8 @@
                             <div class="w-1 h-4 bg-gradient-to-b from-blue-600 to-blue-400 rounded-full"></div>
                             <h4 class="font-black text-gray-900 text-sm uppercase tracking-widest">Freelance Owner</h4>
                         </div>
-                        <button wire:click="editFreelance" class="text-xs text-blue-600 hover:text-blue-700 font-semibold">
-                            {{ $project->freelance ? 'Change' : 'Assign' }}
+                        <button type="button" wire:click="toggleFreelanceSelector" class="text-xs text-blue-600 hover:text-blue-700 font-semibold">
+                            {{ $showFreelanceSelector ? 'Close' : ($project->freelance ? 'Edit' : 'Add') }}
                         </button>
                     </div>
                     @if($project->freelance)
@@ -403,6 +403,40 @@
                             <span class="text-xs text-blue-600 font-semibold">Created by Admin</span>
                         </div>
                     @endif
+
+                    @if($showFreelanceSelector)
+                    <div class="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest">Assign Freelance</label>
+                        <div class="flex gap-2">
+                            <input type="text" wire:model.defer="freelanceSearchQuery" placeholder="Search by email or name..." class="flex-1 border border-gray-200 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
+                            <button type="button" wire:click="searchFreelance" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Search</button>
+                        </div>
+                        <div class="space-y-1 border border-gray-200 rounded-lg p-3 max-h-52 overflow-y-auto bg-white">
+                            <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-2 py-2 rounded-lg transition">
+                                <input type="radio" name="selected_freelance" wire:model.defer="selectedFreelance" value="" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                <div class="flex-1">
+                                    <p class="text-sm font-semibold text-gray-900">No Freelance</p>
+                                </div>
+                            </label>
+                            @forelse($freelances as $freelance)
+                                <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-2 py-2 rounded-lg transition">
+                                    <input type="radio" name="selected_freelance" wire:model.defer="selectedFreelance" value="{{ $freelance->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                    <img src="{{ $freelance->profile_image_url }}" alt="{{ $freelance->name }}" class="w-7 h-7 rounded-full flex-shrink-0" />
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-semibold text-gray-900 truncate">{{ $freelance->name }}</p>
+                                        <p class="text-xs text-gray-600 truncate">{{ $freelance->email }}</p>
+                                    </div>
+                                </label>
+                            @empty
+                                <p class="text-sm text-gray-500 text-center py-5">No freelances found</p>
+                            @endforelse
+                        </div>
+                        @error('selectedFreelance') <p class="text-xs text-red-600 font-medium">{{ $message }}</p> @enderror
+                        <button type="button" wire:click="updateFreelance" wire:loading.attr="disabled" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+                            Save Freelance Owner
+                        </button>
+                    </div>
+                    @endif
                 </div>
             @endif
 
@@ -411,11 +445,11 @@
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
                         <div class="w-1 h-4 bg-gradient-to-b from-emerald-500 to-emerald-400 rounded-full"></div>
-                        <h4 class="font-black text-gray-900 text-sm uppercase tracking-widest">Team Members</h4>
+                        <h4 class="font-black text-gray-900 text-sm uppercase tracking-widest">Team Member</h4>
                     </div>
                     @if(auth()->user()->role !== 'customer')
-                        <button wire:click="editTeamMembers" class="text-xs text-blue-600 hover:text-blue-700 font-semibold">
-                            {{ $project->managers->count() > 0 ? 'Edit' : 'Add' }}
+                        <button type="button" wire:click="toggleTeamMemberSelector" class="text-xs text-blue-600 hover:text-blue-700 font-semibold">
+                            {{ $showTeamMemberSelector ? 'Close' : ($project->managers->count() ? 'Edit' : 'Add') }}
                         </button>
                     @endif
                 </div>
@@ -434,6 +468,36 @@
                 @else
                     <p class="text-sm font-medium text-gray-500">No team members assigned</p>
                 @endif
+
+                @if(auth()->user()->role !== 'customer' && $showTeamMemberSelector)
+                    <div class="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest">Assign Team Members</label>
+                        <div class="flex gap-2">
+                            <input type="text" wire:model.defer="teamMemberSearchQuery" placeholder="Search by email or name..." class="flex-1 border border-gray-200 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
+                            <button type="button" wire:click="searchTeamMembers" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Search</button>
+                        </div>
+                        <button type="button" wire:click="$set('selectedTeamMembers', [])" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Clear Selection</button>
+                        <div class="space-y-1 border border-gray-200 rounded-lg p-3 max-h-52 overflow-y-auto bg-white">
+                            @forelse($availableTeamMembers as $member)
+                                <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-2 py-2 rounded-lg transition group">
+                                    <input type="checkbox" wire:model.defer="selectedTeamMembers" value="{{ $member->id }}" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                    <img src="{{ $member->profile_image_url }}" alt="{{ $member->name }}" class="w-7 h-7 rounded-full flex-shrink-0" />
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-semibold text-gray-900 truncate">{{ $member->name }}</p>
+                                        <p class="text-xs text-gray-600 truncate">{{ $member->email }} • {{ ucfirst($member->role) }}</p>
+                                    </div>
+                                </label>
+                            @empty
+                                <p class="text-sm text-gray-500 text-center py-5">No team members found</p>
+                            @endforelse
+                        </div>
+                        @error('selectedTeamMembers') <p class="text-xs text-red-600 font-medium">{{ $message }}</p> @enderror
+                        @error('selectedTeamMembers.*') <p class="text-xs text-red-600 font-medium">{{ $message }}</p> @enderror
+                        <button type="button" wire:click="updateTeamMembers" wire:loading.attr="disabled" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+                            Save Team Members
+                        </button>
+                    </div>
+                @endif
             </div>
 
             <!-- Customers -->
@@ -441,11 +505,11 @@
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
                         <div class="w-1 h-4 bg-gradient-to-b from-purple-600 to-purple-400 rounded-full"></div>
-                        <h4 class="font-black text-gray-900 text-sm uppercase tracking-widest">Customers</h4>
+                        <h4 class="font-black text-gray-900 text-sm uppercase tracking-widest">Customer</h4>
                     </div>
                     @if(auth()->user()->role !== 'customer')
-                        <button wire:click="editCustomers" class="text-xs text-blue-600 hover:text-blue-700 font-semibold">
-                            Edit
+                        <button type="button" wire:click="toggleCustomerSelector" class="text-xs text-blue-600 hover:text-blue-700 font-semibold">
+                            {{ $showCustomerSelector ? 'Close' : ($project->customers->count() ? 'Edit' : 'Add') }}
                         </button>
                     @endif
                 </div>
@@ -464,7 +528,173 @@
                 @else
                     <p class="text-sm font-medium text-gray-500">No customers</p>
                 @endif
+
+                @if(auth()->user()->role !== 'customer' && $showCustomerSelector)
+                    <div class="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest">Assign Customer</label>
+                        <div class="flex gap-2">
+                            <input type="text" wire:model.defer="customerSearchQuery" placeholder="Search by email or name..." class="flex-1 border border-gray-200 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
+                            <button type="button" wire:click="searchCustomers" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Search</button>
+                        </div>
+                        <div class="space-y-1 border border-gray-200 rounded-lg p-3 max-h-52 overflow-y-auto bg-white">
+                            <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-2 py-2 rounded-lg transition group">
+                                <input type="radio" name="selected_customer" wire:model.defer="selectedCustomer" value="" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold text-gray-900">No Customer</p>
+                                </div>
+                            </label>
+                            @forelse($customers as $customer)
+                                <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-2 py-2 rounded-lg transition group">
+                                    <input type="radio" name="selected_customer" wire:model.defer="selectedCustomer" value="{{ $customer->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                    <img src="{{ $customer->profile_image_url }}" alt="{{ $customer->name }}" class="w-7 h-7 rounded-full flex-shrink-0" />
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-semibold text-gray-900">{{ $customer->name }}</p>
+                                        <p class="text-xs text-gray-600 truncate">{{ $customer->email }}</p>
+                                    </div>
+                                </label>
+                            @empty
+                                <p class="text-sm font-medium text-gray-500 text-center py-5">No customers found</p>
+                            @endforelse
+                        </div>
+                        @error('selectedCustomer') <p class="text-xs text-red-600 font-medium">{{ $message }}</p> @enderror
+                        <button type="button" wire:click="updateCustomers" wire:loading.attr="disabled" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+                            Save Customer
+                        </button>
+                    </div>
+                @endif
             </div>
+
+            @if(in_array(auth()->user()->role, ['customer', 'freelance']))
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-1 h-4 bg-gradient-to-b from-sky-600 to-sky-400 rounded-full"></div>
+                        <h4 class="font-black text-gray-900 text-sm uppercase tracking-widest">Project Payment</h4>
+                    </div>
+
+                    @if(auth()->user()->role === 'customer')
+                        <div class="mb-4 rounded-lg border border-sky-100 bg-sky-50 px-4 py-3 text-xs text-sky-800">
+                            เมื่อส่งสลิปแล้ว รายการจะรอให้ฟรีแลนซ์ตรวจสอบยอดก่อนเปลี่ยนสถานะเป็นอนุมัติหรือไม่อนุมัติ
+                        </div>
+
+                        <form wire:submit.prevent="submitProjectPayment" class="space-y-3 mb-5">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Upload Slip</label>
+                                <input type="file"
+                                       wire:model="projectPaymentSlip"
+                                       accept="image/*,.pdf"
+                                       class="w-full border border-gray-200 px-3 py-2 rounded-lg text-xs" />
+                                <div wire:loading wire:target="projectPaymentSlip" class="text-xs text-blue-600 mt-1 font-medium">Uploading...</div>
+                                @if($projectPaymentSlip)
+                                    <p class="text-xs text-gray-500 mt-1">{{ $projectPaymentSlip->getClientOriginalName() }}</p>
+                                @endif
+                                @error('projectPaymentSlip') <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Amount</label>
+                                <input type="number" step="0.01" min="0.01" wire:model.defer="projectPaymentAmount" class="w-full border border-gray-200 px-3 py-2 rounded-lg text-sm" placeholder="0.00" />
+                                @error('projectPaymentAmount') <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Note (Optional)</label>
+                                <textarea wire:model.defer="projectPaymentNote" rows="2" class="w-full border border-gray-200 px-3 py-2 rounded-lg text-sm resize-none" placeholder="รายละเอียดเพิ่มเติม"></textarea>
+                                @error('projectPaymentNote') <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p> @enderror
+                            </div>
+
+                            <button type="submit" wire:loading.attr="disabled" class="w-full px-4 py-2.5 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 disabled:opacity-50 transition">
+                                <span wire:loading.remove wire:target="submitProjectPayment">ส่งสลิปชำระเงิน</span>
+                                <span wire:loading wire:target="submitProjectPayment">กำลังส่ง...</span>
+                            </button>
+                        </form>
+
+                        <div class="space-y-2">
+                            <p class="text-xs font-bold uppercase tracking-widest text-gray-600">ประวัติของฉันในโปรเจ็คนี้</p>
+                            @forelse($myProjectPayments->take(8) as $payment)
+                                <div class="rounded-lg border border-gray-100 p-3 bg-gray-50">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <p class="text-xs font-semibold text-gray-900 truncate">{{ $payment->user?->name ?? 'Unknown' }}</p>
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase {{ $payment->status === 'approved' ? 'bg-emerald-100 text-emerald-700' : ($payment->status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700') }}">{{ $payment->status }}</span>
+                                            <a href="{{ $payment->slip_file_url }}" target="_blank" class="text-[11px] font-semibold text-sky-700 hover:text-sky-800">ดูสลิป</a>
+                                        </div>
+                                    </div>
+                                    <p class="text-[11px] text-gray-500">{{ $payment->created_at->format('d/m/Y H:i') }}</p>
+                                    <p class="text-xs font-semibold text-gray-700 mt-1">฿{{ number_format($payment->amount, 2) }}</p>
+                                    @if($payment->reviewed_amount)
+                                        <p class="text-xs text-gray-600 mt-1">ยอดที่ตรวจสอบ: ฿{{ number_format($payment->reviewed_amount, 2) }}</p>
+                                    @endif
+                                    @if($payment->review_note)
+                                        <p class="text-xs text-gray-600 mt-1 whitespace-pre-line">{{ $payment->review_note }}</p>
+                                    @endif
+                                </div>
+                            @empty
+                                <p class="text-xs font-medium text-gray-500 text-center py-4 border border-dashed border-gray-200 rounded-lg">ยังไม่มีประวัติการชำระเงิน</p>
+                            @endforelse
+                        </div>
+                    @else
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                                <p class="text-[10px] font-bold uppercase tracking-widest text-amber-700">Pending Customer Slips</p>
+                                <p class="text-xl font-black text-amber-800">{{ $pendingCustomerPayments->count() }}</p>
+                            </div>
+                            <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+                                <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-700">Customer Rounds</p>
+                                <p class="text-xl font-black text-emerald-800">{{ $freelancePaymentStats['customer_rounds'] }}</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <p class="text-xs font-bold uppercase tracking-widest text-gray-600">ประวัติการชำระเงินในโปรเจ็คนี้</p>
+                            @forelse($projectPayments->take(12) as $payment)
+                                <div class="rounded-lg border p-3 {{ $payment->status === 'pending' && $payment->submitted_as === 'customer' ? 'border-amber-200 bg-amber-50' : 'border-gray-100 bg-gray-50' }}">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <p class="text-xs font-semibold text-gray-900 truncate">
+                                            {{ $payment->user?->name ?? 'Unknown' }}
+                                            <span class="text-[10px] font-bold uppercase ml-1 {{ $payment->submitted_as === 'customer' ? 'text-emerald-700' : 'text-blue-700' }}">{{ $payment->submitted_as }}</span>
+                                        </p>
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase {{ $payment->status === 'approved' ? 'bg-emerald-100 text-emerald-700' : ($payment->status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700') }}">{{ $payment->status }}</span>
+                                            <a href="{{ $payment->slip_file_url }}" target="_blank" class="text-[11px] font-semibold text-sky-700 hover:text-sky-800">ดูสลิป</a>
+                                        </div>
+                                    </div>
+                                    <p class="text-[11px] text-gray-500">{{ $payment->created_at->format('d/m/Y H:i') }}</p>
+                                    <p class="text-xs font-semibold text-gray-700 mt-1">฿{{ number_format($payment->amount, 2) }}</p>
+                                    @if($payment->reviewed_amount)
+                                        <p class="text-xs text-gray-600 mt-1">ยอดที่ตรวจสอบ: ฿{{ number_format($payment->reviewed_amount, 2) }}</p>
+                                    @endif
+                                    @if($payment->reviewer)
+                                        <p class="text-xs text-gray-500 mt-1">ตรวจสอบโดย {{ $payment->reviewer->name }}{{ $payment->reviewed_at ? ' • ' . $payment->reviewed_at->format('d/m/Y H:i') : '' }}</p>
+                                    @endif
+                                    @if($payment->review_note)
+                                        <p class="text-xs text-gray-600 mt-1 whitespace-pre-line">{{ $payment->review_note }}</p>
+                                    @endif
+                                    @if($canReviewCustomerPayment && $payment->submitted_as === 'customer' && $payment->status === 'pending')
+                                        <div class="mt-3 pt-3 border-t border-amber-200 space-y-2">
+                                            <p class="text-[11px] font-semibold text-amber-800">รายการนี้รอ Freelance Owner ตรวจสอบ</p>
+                                            <div>
+                                                <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-1">Reviewed Amount</label>
+                                                <input type="number" step="0.01" min="0" wire:model.defer="paymentReviewAmounts.{{ $payment->id }}" class="w-full border border-gray-200 px-3 py-2 rounded-lg text-sm bg-white" placeholder="0.00" />
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-1">Reason / Note</label>
+                                                <textarea wire:model.defer="paymentReviewNotes.{{ $payment->id }}" rows="2" class="w-full border border-gray-200 px-3 py-2 rounded-lg text-sm bg-white resize-none" placeholder="กรอกเหตุผลเมื่อไม่อนุมัติ หรือใส่หมายเหตุเพิ่มเติม"></textarea>
+                                                <p class="mt-1 text-[11px] text-gray-500">ถ้าไม่อนุมัติ ต้องกรอกเหตุผลก่อนกดส่งคืน</p>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <button type="button" wire:click="approveProjectPayment({{ $payment->id }})" wire:loading.attr="disabled" class="px-3 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50 transition">Approve</button>
+                                                <button type="button" wire:click="rejectProjectPayment({{ $payment->id }})" wire:loading.attr="disabled" class="px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-50 transition">ส่งคืน</button>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            @empty
+                                <p class="text-xs font-medium text-gray-500 text-center py-4 border border-dashed border-gray-200 rounded-lg">ยังไม่มีประวัติการชำระเงิน</p>
+                            @endforelse
+                        </div>
+                    @endif
+                </div>
+            @endif
 
             <!-- Files -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition">
@@ -529,7 +759,7 @@
     @if($showEditModal)
         <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
             <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('showEditModal', false)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001] pointer-events-auto">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Edit Project Details</h3>
                     <button wire:click="$set('showEditModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
@@ -599,7 +829,7 @@
                 <div class="flex-1 overflow-y-auto p-5">
                     <form wire:submit.prevent="updateCustomers" class="space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-3 uppercase tracking-widest">Select Customers</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-3 uppercase tracking-widest">Select Customer (Only 1)</label>
                             <div class="flex gap-2 mb-4">
                                 <input type="text" wire:model.defer="customerSearchQuery" placeholder="Search by email or name..." class="flex-1 border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
                                 <button type="button" wire:click="searchCustomers" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Search</button>
@@ -607,7 +837,7 @@
                             <div class="space-y-1 border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto bg-white">
                                 @forelse($customers as $customer)
                                     <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-3 py-2.5 rounded-lg transition group">
-                                        <input type="checkbox" wire:model.defer="selectedCustomers" value="{{ $customer->id }}" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                        <input type="radio" wire:model.defer="selectedCustomer" value="{{ $customer->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
                                         <img src="{{ $customer->profile_image_url }}" alt="{{ $customer->name }}" class="w-8 h-8 rounded-full flex-shrink-0" />
                                         <div class="flex-1 min-w-0">
                                             <p class="text-sm font-semibold text-gray-900">{{ $customer->name }}</p>
@@ -618,7 +848,7 @@
                                     <p class="text-sm font-medium text-gray-500 text-center py-8">No customers found</p>
                                 @endforelse
                             </div>
-                            @error('selectedCustomers') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
+                            @error('selectedCustomer') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
                         </div>
 
                         <div class="flex gap-3 pt-4 border-t border-gray-200">
@@ -643,16 +873,16 @@
     @if($showEditTeamMembersModal)
         <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
             <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('showEditTeamMembersModal', false)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001] pointer-events-auto">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-white">
-                    <h3 class="text-lg font-black text-gray-900">Manage Team Members</h3>
+                    <h3 class="text-lg font-black text-gray-900">Manage Team Member</h3>
                     <button wire:click="$set('showEditTeamMembersModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
 
                 <div class="flex-1 overflow-y-auto p-5">
                     <form wire:submit.prevent="updateTeamMembers" class="space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-3 uppercase tracking-widest">Select Team Members (Freelances Only)</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-3 uppercase tracking-widest">Select Team Member (Only 1)</label>
                             <div class="flex gap-2 mb-4">
                                 <input type="text" wire:model.defer="teamMemberSearchQuery" placeholder="Search by email or name..." class="flex-1 border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
                                 <button type="button" wire:click="searchTeamMembers" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Search</button>
@@ -660,7 +890,7 @@
                             <div class="space-y-1 border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto bg-white">
                                 @forelse($availableTeamMembers as $member)
                                     <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-3 py-2.5 rounded-lg transition group">
-                                        <input type="checkbox" wire:model.defer="selectedTeamMembers" value="{{ $member->id }}" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                        <input type="radio" wire:model.defer="selectedTeamMember" value="{{ $member->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
                                         <img src="{{ $member->profile_image_url }}" alt="{{ $member->name }}" class="w-8 h-8 rounded-full flex-shrink-0" />
                                         <div class="flex-1 min-w-0">
                                             <p class="text-sm font-semibold text-gray-900">{{ $member->name }}</p>
@@ -671,7 +901,7 @@
                                     <p class="text-sm text-gray-500 text-center py-8">No team members found</p>
                                 @endforelse
                             </div>
-                            @error('selectedTeamMembers') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
+                            @error('selectedTeamMember') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
                         </div>
 
                         <div class="flex gap-3 pt-4 border-t border-gray-200">
@@ -696,7 +926,7 @@
     @if($showEditFreelanceModal)
         <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
             <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('showEditFreelanceModal', false)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+            <div class="absolute inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001] pointer-events-auto">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Assign Freelance</h3>
                     <button wire:click="$set('showEditFreelanceModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>

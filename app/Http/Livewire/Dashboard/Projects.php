@@ -195,7 +195,7 @@ class Projects extends Component
             });
         }
 
-        $projects = $query->with('creator', 'freelance', 'customers')->paginate(12);
+        $projects = $query->with(['creator', 'freelance', 'customers', 'paymentProofs.user'])->paginate(12);
 
         // Get available freelancers and customers for filter dropdowns
         $allFreelancers = User::where('role', 'freelance')->where('is_approved', true)->get();

@@ -56,4 +56,9 @@ class Project extends Model
         return $this->hasMany(File::class, 'module_id')
             ->where('module_name', 'Project');
     }
+
+    public function paymentProofs()
+    {
+        return $this->hasMany(ProjectPaymentProof::class);
+    }
 }

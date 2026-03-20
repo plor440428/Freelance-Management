@@ -50,6 +50,17 @@
                 </button>
                 @endif
 
+                <button @click="activeTab = 'project-payments'"
+                        :class="activeTab === 'project-payments' ? 'tab-btn-active' : 'tab-btn-inactive'"
+                        class="tab-btn">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .672-3 1.5S10.343 11 12 11s3 .672 3 1.5S13.657 14 12 14m0-8v2m0 6v2m8-6a8 8 0 11-16 0 8 8 0 0116 0z"/>
+                        </svg>
+                        <span>Project Payments</span>
+                    </div>
+                </button>
+
                 @if(auth()->user()->role === 'admin')
                 <button @click="activeTab = 'pricing'" 
                         :class="activeTab === 'pricing' ? 'tab-btn-active' : 'tab-btn-inactive'"
@@ -272,7 +283,9 @@
                                     </svg>
                                     <div>
                                         <p class="font-black text-blue-900">Payment Verified</p>
-                                        <p class="text-sm text-blue-700 mt-1 font-medium">Your payment has been confirmed and your account is active</p>
+                                        <p class="text-sm text-blue-700 mt-1 font-medium">
+                                            สถานะล่าสุด: {{ ucfirst($registrationPaymentStatus ?? 'pending') }}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -299,6 +312,63 @@
                 </div>
             </div>
             @endif
+
+            <div x-show="activeTab === 'project-payments'" x-cloak>
+                <div class="panel p-7 fade-up delay-2">
+                    <h3 class="section-title text-2xl text-slate-900 mb-2 flex items-center">
+                        <div class="w-1 h-8 bg-gradient-to-b from-emerald-600 to-teal-400 rounded-full mr-3"></div>
+                        Project Payment History
+                    </h3>
+                    <p class="text-sm font-medium text-slate-600 mb-6 ml-6">ประวัติการชำระเงินทั้งหมดในโปรเจ็คที่คุณเกี่ยวข้อง</p>
+
+                    @if(auth()->user()->role === 'freelance')
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                            <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                                <p class="text-xs uppercase tracking-widest font-bold text-emerald-700">Customer Rounds</p>
+                                <p class="text-2xl font-black text-emerald-900 mt-1">{{ $projectPaymentSummary['customer_rounds'] }}</p>
+                            </div>
+                            <div class="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                                <p class="text-xs uppercase tracking-widest font-bold text-blue-700">Freelance Rounds</p>
+                                <p class="text-2xl font-black text-blue-900 mt-1">{{ $projectPaymentSummary['freelance_rounds'] }}</p>
+                            </div>
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                <p class="text-xs uppercase tracking-widest font-bold text-slate-600">My Uploads</p>
+                                <p class="text-2xl font-black text-slate-900 mt-1">{{ $projectPaymentSummary['my_rounds'] }}</p>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($projectPaymentHistory->isEmpty())
+                        <div class="text-center py-8 text-slate-500 bg-slate-50 rounded-xl border border-slate-200">
+                            ยังไม่มีประวัติการชำระเงินของโปรเจ็ค
+                        </div>
+                    @else
+                        <div class="space-y-3">
+                            @foreach($projectPaymentHistory as $payment)
+                                <div class="border border-slate-200 rounded-xl p-4 bg-white">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p class="font-semibold text-slate-900">{{ $payment->project?->name ?? '-' }}</p>
+                                            <p class="text-xs text-slate-500 mt-1">
+                                                โดย {{ $payment->user?->name ?? '-' }}
+                                                • {{ ucfirst($payment->submitted_as) }}
+                                                • {{ $payment->created_at->format('d/m/Y H:i') }}
+                                            </p>
+                                            @if($payment->amount)
+                                                <p class="text-sm font-semibold text-emerald-700 mt-2">฿{{ number_format($payment->amount, 2) }}</p>
+                                            @endif
+                                            @if($payment->note)
+                                                <p class="text-sm text-slate-600 mt-1">{{ $payment->note }}</p>
+                                            @endif
+                                        </div>
+                                        <a href="{{ $payment->slip_file_url }}" target="_blank" class="btn-secondary text-sm">View Slip</a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
 
             <!-- Pricing Tab (Admin Only) -->
             @if(auth()->user()->role === 'admin')

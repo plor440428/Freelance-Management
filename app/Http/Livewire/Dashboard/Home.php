@@ -27,13 +27,10 @@ class Home extends Component
         ];
 
         if ($user->role === 'freelance') {
-            // Projects where freelance is owner or assigned
+            // Projects where freelance is project creator or freelance owner
             $allProjects = Project::where(function($q) use ($user) {
                 $q->where('freelance_id', $user->id)
-                  ->orWhere('created_by', $user->id)
-                  ->orWhereHas('managers', function($q2) use ($user) {
-                      $q2->where('user_id', $user->id);
-                  });
+                  ->orWhere('created_by', $user->id);
             })->get();
 
             $projects = $allProjects->where('status', 'active');

@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Dashboard;
 
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
@@ -11,9 +12,12 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\File;
+use App\Models\ProjectPaymentProof;
 use App\Mail\ProjectStatusUpdatedNotification;
 use App\Mail\ProjectManagerAssignedNotification;
 use App\Mail\ProjectCustomerAssignedNotification;
+use App\Mail\ProjectPaymentSlipSubmitted;
+use App\Mail\ProjectPaymentReviewed;
 
 class ProjectDetail extends Component
 {
@@ -36,14 +40,24 @@ class ProjectDetail extends Component
     public $description;
     public $status;
     public $selectedCustomers = [];
+    public $selectedCustomer = null;
     public $selectedFreelance = null;
     public $selectedTeamMembers = [];
+    public $selectedTeamMember = null;
+    public $showFreelanceSelector = false;
+    public $showTeamMemberSelector = false;
+    public $showCustomerSelector = false;
     public $showCancelModal = false;
     public $cancelReason = '';
     public $pendingStatus = null;
 
     // File uploads
     public $uploadedFiles = [];
+    public $projectPaymentSlip;
+    public $projectPaymentAmount;
+    public $projectPaymentNote = '';
+    public $paymentReviewAmounts = [];
+    public $paymentReviewNotes = [];
 
     // Task inline editing
     public $editingTaskId = null;
@@ -68,7 +82,7 @@ class ProjectDetail extends Component
 
     public function loadProject()
     {
-        $query = Project::with(['creator', 'freelance', 'customers', 'managers', 'tasks.assignee', 'files']);
+        $query = Project::with(['creator', 'freelance', 'customers', 'managers', 'tasks.assignee', 'files', 'paymentProofs.user']);
 
         $user = Auth::user();
 
@@ -85,6 +99,249 @@ class ProjectDetail extends Component
         }
 
         $this->project = $query->findOrFail($this->projectId);
+        $this->selectedFreelance = $this->project->freelance_id;
+        $this->selectedCustomer = $this->project->customers->pluck('id')->first();
+        $this->selectedTeamMembers = $this->project->managers->pluck('id')->toArray();
+        $this->selectedTeamMember = $this->project->managers->pluck('id')->first();
+    }
+
+    public function toggleFreelanceSelector()
+    {
+        if (Auth::user()->role !== 'admin') {
+            $this->dispatch('notify', message: 'Only admin can assign freelance.', type: 'warning');
+            return;
+        }
+
+        $this->showFreelanceSelector = !$this->showFreelanceSelector;
+        if ($this->showFreelanceSelector) {
+            $this->selectedFreelance = $this->project->freelance_id;
+        }
+    }
+
+    public function toggleTeamMemberSelector()
+    {
+        if (Auth::user()->role === 'customer') {
+            $this->dispatch('notify', message: 'Customers cannot manage team members.', type: 'warning');
+            return;
+        }
+
+        $this->showTeamMemberSelector = !$this->showTeamMemberSelector;
+        if ($this->showTeamMemberSelector) {
+            $this->selectedTeamMembers = $this->project->managers->pluck('id')->toArray();
+        }
+    }
+
+    public function toggleCustomerSelector()
+    {
+        if (Auth::user()->role === 'customer') {
+            $this->dispatch('notify', message: 'Customers cannot manage customer assignment.', type: 'warning');
+            return;
+        }
+
+        $this->showCustomerSelector = !$this->showCustomerSelector;
+        if ($this->showCustomerSelector) {
+            $this->selectedCustomer = $this->project->customers->pluck('id')->first();
+        }
+    }
+
+    protected function canSubmitProjectPayment(): bool
+    {
+        return in_array(Auth::user()->role, ['customer', 'freelance'], true);
+    }
+
+    protected function canReviewCustomerPayment(): bool
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'freelance') {
+            return false;
+        }
+
+        return $this->project->freelance_id === $user->id;
+    }
+
+    public function submitProjectPayment()
+    {
+        if (!$this->canSubmitProjectPayment()) {
+            $this->dispatch('notify', message: 'Only customers or freelancers can upload payment slips.', type: 'warning');
+            return;
+        }
+
+        if (Auth::user()->role === 'customer' && !$this->project->freelance_id) {
+            $this->dispatch('notify', message: 'This project has no freelance owner assigned yet.', type: 'warning');
+            return;
+        }
+
+        try {
+            $this->resetErrorBag(['projectPaymentSlip', 'projectPaymentAmount', 'projectPaymentNote']);
+
+            $this->validate([
+                'projectPaymentSlip' => 'required|file|mimes:jpeg,jpg,png,gif,pdf|max:5120',
+                'projectPaymentAmount' => 'required|numeric|min:0.01',
+                'projectPaymentNote' => 'nullable|string|max:1000',
+            ], [
+                'projectPaymentSlip.required' => 'Please select a payment slip file.',
+                'projectPaymentAmount.required' => 'Please enter the payment amount.',
+                'projectPaymentAmount.min' => 'Payment amount must be greater than 0.',
+            ]);
+
+            $user = Auth::user();
+
+            \Log::info('Submitting project payment slip', [
+                'project_id' => $this->project->id,
+                'user_id' => $user->id,
+                'role' => $user->role,
+                'amount' => $this->projectPaymentAmount,
+                'has_file' => (bool) $this->projectPaymentSlip,
+            ]);
+
+            $filename = 'project_payment_' . $this->project->id . '_' . $user->id . '_' . time() . '.' . $this->projectPaymentSlip->getClientOriginalExtension();
+            $path = $this->projectPaymentSlip->storeAs('project_payment_slips', $filename, 'public');
+
+            $payment = ProjectPaymentProof::create([
+                'project_id' => $this->project->id,
+                'user_id' => $user->id,
+                'submitted_as' => $user->role,
+                'amount' => (float) $this->projectPaymentAmount,
+                'slip_file' => $path,
+                'note' => $this->projectPaymentNote,
+                'status' => 'pending',
+            ]);
+
+            $this->sendProjectPaymentEmails($payment);
+
+            $this->reset(['projectPaymentSlip', 'projectPaymentAmount', 'projectPaymentNote']);
+            $this->dispatch('notify', message: 'Payment slip uploaded successfully!', type: 'success');
+            $this->loadProject();
+        } catch (ValidationException $e) {
+            $message = collect($e->errors())->flatten()->first() ?? 'Please check your payment slip form.';
+            $this->dispatch('notify', message: $message, type: 'error');
+            throw $e;
+        } catch (\Throwable $e) {
+            \Log::error('Failed to upload project payment slip', [
+                'project_id' => $this->project->id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            $this->dispatch('notify', message: 'Failed to upload payment slip. ' . $e->getMessage(), type: 'error');
+        }
+    }
+
+    public function approveProjectPayment($paymentId)
+    {
+        $this->reviewProjectPayment($paymentId, 'approved');
+    }
+
+    public function rejectProjectPayment($paymentId)
+    {
+        $this->reviewProjectPayment($paymentId, 'rejected');
+    }
+
+    protected function reviewProjectPayment($paymentId, string $status): void
+    {
+        if (!$this->canReviewCustomerPayment()) {
+            $this->dispatch('notify', message: 'You do not have permission to review payment slips.', type: 'warning');
+            return;
+        }
+
+        if (!in_array($status, ['approved', 'rejected'], true)) {
+            $this->dispatch('notify', message: 'Invalid review status.', type: 'error');
+            return;
+        }
+
+        $payment = $this->project->paymentProofs()
+            ->where('id', $paymentId)
+            ->where('submitted_as', 'customer')
+            ->first();
+
+        if (!$payment) {
+            $this->dispatch('notify', message: 'Payment slip not found.', type: 'error');
+            return;
+        }
+
+        if ($payment->status !== 'pending') {
+            $this->dispatch('notify', message: 'Only pending payment slips can be reviewed.', type: 'warning');
+            return;
+        }
+
+        $reviewedAmount = $this->paymentReviewAmounts[$paymentId] ?? $payment->amount;
+        $reviewNote = trim((string) ($this->paymentReviewNotes[$paymentId] ?? ''));
+
+        if ($reviewedAmount !== null && $reviewedAmount !== '') {
+            if (!is_numeric($reviewedAmount) || (float) $reviewedAmount < 0) {
+                $this->dispatch('notify', message: 'Reviewed amount must be a valid number.', type: 'error');
+                return;
+            }
+            $reviewedAmount = (float) $reviewedAmount;
+        } else {
+            $reviewedAmount = null;
+        }
+
+        if ($status === 'rejected' && $reviewNote === '') {
+            $this->dispatch('notify', message: 'Please provide a note when rejecting a payment slip.', type: 'warning');
+            return;
+        }
+
+        $payment->update([
+            'status' => $status,
+            'reviewed_amount' => $reviewedAmount,
+            'review_note' => $reviewNote ?: null,
+            'reviewed_by' => Auth::id(),
+            'reviewed_at' => now(),
+        ]);
+
+        $this->sendProjectPaymentReviewEmail($payment->fresh(['project', 'user', 'reviewer']));
+
+        unset($this->paymentReviewAmounts[$paymentId], $this->paymentReviewNotes[$paymentId]);
+
+        $message = $status === 'approved'
+            ? 'Approved payment slip successfully.'
+            : 'Sent payment slip back to customer successfully.';
+
+        $this->dispatch('notify', message: $message, type: 'success');
+        $this->loadProject();
+    }
+
+    protected function sendProjectPaymentReviewEmail(ProjectPaymentProof $payment): void
+    {
+        if (!$payment->user?->email) {
+            return;
+        }
+
+        try {
+            Mail::to($payment->user->email)->send(new ProjectPaymentReviewed($payment));
+        } catch (\Throwable $mailException) {
+            \Log::error('Failed to send project payment review email', [
+                'project_payment_proof_id' => $payment->id,
+                'recipient' => $payment->user->email,
+                'error' => $mailException->getMessage(),
+            ]);
+        }
+    }
+
+    protected function sendProjectPaymentEmails(ProjectPaymentProof $payment): void
+    {
+        $project = $this->project->loadMissing(['freelance']);
+
+        if (!$project->freelance?->email) {
+            return;
+        }
+
+        $email = strtolower(trim((string) $project->freelance->email));
+
+        if ($payment->user?->email && $email === strtolower($payment->user->email)) {
+            return;
+        }
+
+        try {
+            Mail::to($email)->send(new ProjectPaymentSlipSubmitted($payment->loadMissing(['project', 'user'])));
+        } catch (\Throwable $mailException) {
+            \Log::error('Failed to send project payment slip email', [
+                'project_payment_proof_id' => $payment->id,
+                'recipient' => $email,
+                'error' => $mailException->getMessage(),
+            ]);
+        }
     }
 
     protected function projectRules()
@@ -164,7 +421,7 @@ class ProjectDetail extends Component
             return;
         }
 
-        $this->selectedCustomers = $this->project->customers->pluck('id')->toArray();
+        $this->selectedCustomer = $this->project->customers->pluck('id')->first();
         $this->showEditCustomersModal = true;
     }
 
@@ -299,8 +556,12 @@ class ProjectDetail extends Component
     public function updateCustomers()
     {
         try {
+            if ($this->selectedCustomer === '') {
+                $this->selectedCustomer = null;
+            }
+
             $this->validate([
-                'selectedCustomers' => 'array',
+                'selectedCustomer' => 'nullable|exists:users,id',
             ]);
 
             // Check authorization
@@ -312,13 +573,15 @@ class ProjectDetail extends Component
             // Get old customer IDs before syncing
             $oldCustomerIds = $this->project->customers->pluck('id')->toArray();
 
+            $newCustomerIds = $this->selectedCustomer ? [(int) $this->selectedCustomer] : [];
+
             // Update customers
-            $this->project->customers()->sync($this->selectedCustomers);
+            $this->project->customers()->sync($newCustomerIds);
 
             // Send email to newly added customers
-            $newCustomerIds = array_diff($this->selectedCustomers, $oldCustomerIds);
-            if (!empty($newCustomerIds)) {
-                $newCustomers = User::whereIn('id', $newCustomerIds)->get();
+            $addedCustomerIds = array_diff($newCustomerIds, $oldCustomerIds);
+            if (!empty($addedCustomerIds)) {
+                $newCustomers = User::whereIn('id', $addedCustomerIds)->get();
                 foreach ($newCustomers as $customer) {
                     try {
                         Mail::to($customer->email)->send(new ProjectCustomerAssignedNotification($this->project, $customer));
@@ -334,6 +597,7 @@ class ProjectDetail extends Component
 
             $this->dispatch('notify', message: 'Customers updated successfully!', type: 'success');
             $this->showEditCustomersModal = false;
+            $this->showCustomerSelector = false;
             $this->loadProject();
         } catch (\Exception $e) {
             $this->dispatch('notify', message: 'Failed to update customers. ' . $e->getMessage(), type: 'error');
@@ -350,14 +614,21 @@ class ProjectDetail extends Component
         }
 
         $this->selectedTeamMembers = $this->project->managers->pluck('id')->toArray();
+        $this->selectedTeamMember = $this->project->managers->pluck('id')->first();
         $this->showEditTeamMembersModal = true;
     }
 
     public function updateTeamMembers()
     {
         try {
+            if ($this->selectedTeamMember === '') {
+                $this->selectedTeamMember = null;
+            }
+
             $this->validate([
                 'selectedTeamMembers' => 'array',
+                'selectedTeamMembers.*' => 'exists:users,id',
+                'selectedTeamMember' => 'nullable|exists:users,id',
             ]);
 
             // Check authorization - admin, creator, or assigned freelance
@@ -370,13 +641,24 @@ class ProjectDetail extends Component
             // Get old team member IDs before syncing
             $oldTeamMemberIds = $this->project->managers->pluck('id')->toArray();
 
+            $incomingIds = !empty($this->selectedTeamMembers)
+                ? $this->selectedTeamMembers
+                : ($this->selectedTeamMember ? [(int) $this->selectedTeamMember] : []);
+
+            $newTeamMemberIds = collect($incomingIds)
+                ->filter(fn ($id) => $id !== '' && $id !== null)
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
+
             // Update team members
-            $this->project->managers()->sync($this->selectedTeamMembers);
+            $this->project->managers()->sync($newTeamMemberIds);
 
             // Send email to newly added team members
-            $newTeamMemberIds = array_diff($this->selectedTeamMembers, $oldTeamMemberIds);
-            if (!empty($newTeamMemberIds)) {
-                $newTeamMembers = User::whereIn('id', $newTeamMemberIds)->get();
+            $addedTeamMemberIds = array_diff($newTeamMemberIds, $oldTeamMemberIds);
+            if (!empty($addedTeamMemberIds)) {
+                $newTeamMembers = User::whereIn('id', $addedTeamMemberIds)->get();
                 foreach ($newTeamMembers as $member) {
                     try {
                         Mail::to($member->email)->send(new ProjectManagerAssignedNotification($this->project, $member));
@@ -392,6 +674,7 @@ class ProjectDetail extends Component
 
             $this->dispatch('notify', message: 'Team members updated successfully!', type: 'success');
             $this->showEditTeamMembersModal = false;
+            $this->showTeamMemberSelector = false;
             $this->loadProject();
         } catch (\Exception $e) {
             $this->dispatch('notify', message: 'Failed to update team members. ' . $e->getMessage(), type: 'error');
@@ -754,6 +1037,10 @@ class ProjectDetail extends Component
     public function updateFreelance()
     {
         try {
+            if ($this->selectedFreelance === '') {
+                $this->selectedFreelance = null;
+            }
+
             // Only admin can edit freelance
             if (Auth::user()->role !== 'admin') {
                 $this->dispatch('notify', message: 'Only admin can assign freelance.', type: 'warning');
@@ -783,6 +1070,7 @@ class ProjectDetail extends Component
 
             $this->dispatch('notify', message: 'Freelance updated successfully!', type: 'success');
             $this->showEditFreelanceModal = false;
+            $this->showFreelanceSelector = false;
             $this->loadProject();
         } catch (\Exception $e) {
             $this->dispatch('notify', message: 'Failed to update freelance. ' . $e->getMessage(), type: 'error');
@@ -793,6 +1081,8 @@ class ProjectDetail extends Component
 
     public function render()
     {
+        $user = Auth::user();
+
         // Get available team members with search query (exclude project owner/creator)
         $availableTeamMembers = User::where('role', 'freelance')
             ->where('is_approved', true)
@@ -831,12 +1121,48 @@ class ProjectDetail extends Component
         // Get task assignees from project managers only
         $taskAssignees = $this->project->managers;
 
+        $myProjectPayments = $this->project->paymentProofs()
+            ->with(['user', 'reviewer'])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->get();
+
+        $projectPayments = $this->project->paymentProofs()
+            ->with(['user', 'reviewer'])
+            ->latest()
+            ->get();
+
+        foreach ($projectPayments as $payment) {
+            if (!array_key_exists($payment->id, $this->paymentReviewAmounts)) {
+                $this->paymentReviewAmounts[$payment->id] = $payment->reviewed_amount ?? $payment->amount;
+            }
+
+            if (!array_key_exists($payment->id, $this->paymentReviewNotes)) {
+                $this->paymentReviewNotes[$payment->id] = $payment->review_note ?? '';
+            }
+        }
+
+        $freelancePaymentStats = [
+            'customer_rounds' => $projectPayments->where('submitted_as', 'customer')->count(),
+            'self_rounds' => $projectPayments->where('user_id', $user->id)->count(),
+        ];
+
+        $pendingCustomerPayments = $projectPayments
+            ->where('submitted_as', 'customer')
+            ->where('status', 'pending')
+            ->values();
+
         return view('livewire.dashboard.project-detail', [
             'customers' => $customers,
             'users' => User::whereIn('role', ['admin', 'freelance', 'customer'])->where('is_approved', true)->get(),
             'freelances' => $freelances,
             'availableTeamMembers' => $availableTeamMembers,
             'taskAssignees' => $taskAssignees,
+            'myProjectPayments' => $myProjectPayments,
+            'projectPayments' => $projectPayments,
+            'pendingCustomerPayments' => $pendingCustomerPayments,
+            'freelancePaymentStats' => $freelancePaymentStats,
+            'canReviewCustomerPayment' => $this->canReviewCustomerPayment(),
         ]);
     }
 }
