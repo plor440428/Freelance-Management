@@ -40,6 +40,9 @@ class PaymentProof extends Model
 
     public function getProofFileUrlAttribute()
     {
-        return Storage::disk('public')->url($this->proof_file);
+        if ($this->proof_file) {
+            return Storage::disk('public')->url($this->proof_file);
+        }
+        return null;
     }
 }

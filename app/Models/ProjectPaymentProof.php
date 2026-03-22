@@ -49,6 +49,9 @@ class ProjectPaymentProof extends Model
 
     public function getSlipFileUrlAttribute(): string
     {
-        return Storage::disk('public')->url($this->slip_file);
+        if ($this->slip_file) {
+            return Storage::disk('public')->url($this->slip_file);
+        }
+        return '';
     }
 }

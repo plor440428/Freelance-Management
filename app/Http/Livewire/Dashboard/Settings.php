@@ -40,14 +40,8 @@ class Settings extends Component
         $this->email = $user->email;
         
         // Load profile image with proper path checking
-        if ($user->profile_image_path) {
-            // Check if file exists in storage
-            if (Storage::disk('public')->exists($user->profile_image_path)) {
-                $this->previewUrl = asset('storage/' . $user->profile_image_path);
-            } else {
-                // Fallback: try without storage prefix
-                $this->previewUrl = asset($user->profile_image_path);
-            }
+        if ($user->profile_image_path && Storage::disk('public')->exists($user->profile_image_path)) {
+            $this->previewUrl = Storage::disk('public')->url($user->profile_image_path);
         }
 
         // Load payment slip if exists
@@ -102,7 +96,7 @@ class Settings extends Component
                 $user->update(['profile_image_path' => $path]);
 
                 // Update preview URL
-                $this->previewUrl = asset('storage/' . $path);
+                $this->previewUrl = Storage::disk('public')->url($path);
                 
                 // Reset the file input
                 $this->reset('profileImage');

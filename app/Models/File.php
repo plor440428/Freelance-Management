@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class File extends Model
 {
@@ -20,6 +21,9 @@ class File extends Model
 
     public function getUrlAttribute()
     {
-        return asset('storage/' . $this->file_path);
+        if ($this->file_path) {
+            return Storage::disk('public')->url($this->file_path);
+        }
+        return null;
     }
 }
