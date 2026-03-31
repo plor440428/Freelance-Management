@@ -13,6 +13,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Models\File;
 use App\Models\ProjectPaymentProof;
+use App\Models\Chat;
 use App\Mail\ProjectStatusUpdatedNotification;
 use App\Mail\ProjectManagerAssignedNotification;
 use App\Mail\ProjectCustomerAssignedNotification;
@@ -68,6 +69,8 @@ class ProjectDetail extends Component
     public $customerSearchQuery = '';
     public $teamMemberSearchQuery = '';
     public $freelanceSearchQuery = '';
+    public $newChatMessage = '';
+    public $chatTargetCustomerId = null;
 
     public function mount($id)
     {
@@ -103,6 +106,82 @@ class ProjectDetail extends Component
         $this->selectedCustomer = $this->project->customers->pluck('id')->first();
         $this->selectedTeamMembers = $this->project->managers->pluck('id')->toArray();
         $this->selectedTeamMember = $this->project->managers->pluck('id')->first();
+        if ($this->project->customers->count() === 1) {
+            $this->chatTargetCustomerId = (int) $this->project->customers->first()->id;
+        } elseif ($this->chatTargetCustomerId === null) {
+            $this->chatTargetCustomerId = $this->project->customers->pluck('id')->first();
+        }
+    }
+
+    protected function canUseProjectChat(): bool
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'customer') {
+            return $this->project->customers->contains('id', $user->id);
+        }
+
+        if ($user->role === 'freelance') {
+            return $this->project->freelance_id === $user->id || $this->project->created_by === $user->id;
+        }
+
+        return false;
+    }
+
+    protected function getChatCounterpartId(): ?int
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'customer') {
+            return $this->project->freelance_id ? (int) $this->project->freelance_id : null;
+        }
+
+        if ($user->role === 'freelance') {
+            if ($this->project->customers->count() === 1) {
+                return (int) $this->project->customers->first()->id;
+            }
+
+            if ($this->chatTargetCustomerId === null) {
+                return null;
+            }
+
+            $target = (int) $this->chatTargetCustomerId;
+            return $this->project->customers->contains('id', $target) ? $target : null;
+        }
+
+        return null;
+    }
+
+    public function updatedChatTargetCustomerId()
+    {
+        // Trigger re-render when freelance switches conversation target.
+    }
+
+    public function sendChatMessage()
+    {
+        if (!$this->canUseProjectChat()) {
+            $this->dispatch('notify', message: 'You do not have permission to chat in this project.', type: 'warning');
+            return;
+        }
+
+        $counterpartId = $this->getChatCounterpartId();
+        if (!$counterpartId) {
+            $this->dispatch('notify', message: 'Please choose a valid chat recipient first.', type: 'warning');
+            return;
+        }
+
+        $this->validate([
+            'newChatMessage' => 'required|string|max:1000',
+        ]);
+
+        Chat::create([
+            'project_id' => $this->project->id,
+            'sender_id' => Auth::id(),
+            'receiver_id' => $counterpartId,
+            'message' => trim($this->newChatMessage),
+        ]);
+
+        $this->newChatMessage = '';
     }
 
     public function toggleFreelanceSelector()
@@ -1156,6 +1235,25 @@ class ProjectDetail extends Component
             ->where('status', 'pending')
             ->values();
 
+        $chatCounterpartId = $this->getChatCounterpartId();
+        $chatMessages = collect();
+
+        if ($this->canUseProjectChat() && $chatCounterpartId) {
+            $chatMessages = Chat::where('project_id', $this->project->id)
+                ->where(function ($query) use ($chatCounterpartId, $user) {
+                    $query->where(function ($q) use ($chatCounterpartId, $user) {
+                        $q->where('sender_id', $user->id)
+                            ->where('receiver_id', $chatCounterpartId);
+                    })->orWhere(function ($q) use ($chatCounterpartId, $user) {
+                        $q->where('sender_id', $chatCounterpartId)
+                            ->where('receiver_id', $user->id);
+                    });
+                })
+                ->with(['sender', 'receiver'])
+                ->orderBy('created_at', 'asc')
+                ->get();
+        }
+
         return view('livewire.dashboard.project-detail', [
             'customers' => $customers,
             'users' => User::whereIn('role', ['admin', 'freelance', 'customer'])->where('is_approved', true)->get(),
@@ -1167,6 +1265,8 @@ class ProjectDetail extends Component
             'pendingCustomerPayments' => $pendingCustomerPayments,
             'freelancePaymentStats' => $freelancePaymentStats,
             'canReviewCustomerPayment' => $this->canReviewCustomerPayment(),
+            'chatMessages' => $chatMessages,
+            'chatCounterpartId' => $chatCounterpartId,
         ]);
     }
 }
