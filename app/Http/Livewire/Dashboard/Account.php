@@ -14,6 +14,11 @@ class Account extends Component
 {
     use WithFileUploads, WithPagination;
 
+    protected function isAdmin(): bool
+    {
+        return Auth::check() && Auth::user()->role === 'admin';
+    }
+
     public $showCreateModal = false;
     public $showEditModal = false;
     public $confirmingDeleteId = null;
@@ -40,8 +45,8 @@ class Account extends Component
 
     public function mount()
     {
-        // Prevent customers from accessing account management
-        if (Auth::user()->role === 'customer') {
+        // Account management is admin-only.
+        if (!$this->isAdmin()) {
             abort(403, 'Unauthorized access.');
         }
     }
@@ -74,8 +79,7 @@ class Account extends Component
 
     public function createUser()
     {
-        // Prevent customers from creating users
-        if (Auth::user()->role === 'customer') {
+        if (!$this->isAdmin()) {
             $this->dispatch('notify', message: 'Unauthorized action.', type: 'error');
             return;
         }
@@ -121,8 +125,7 @@ class Account extends Component
 
     public function edit($id)
     {
-        // Prevent customers from editing users
-        if (Auth::user()->role === 'customer') {
+        if (!$this->isAdmin()) {
             $this->dispatch('notify', message: 'Unauthorized action.', type: 'error');
             return;
         }
@@ -140,8 +143,7 @@ class Account extends Component
 
     public function updateUser()
     {
-        // Prevent customers from updating users
-        if (Auth::user()->role === 'customer') {
+        if (!$this->isAdmin()) {
             $this->dispatch('notify', message: 'Unauthorized action.', type: 'error');
             return;
         }
@@ -187,8 +189,7 @@ class Account extends Component
 
     public function confirmDelete($id)
     {
-        // Prevent customers from deleting users
-        if (Auth::user()->role === 'customer') {
+        if (!$this->isAdmin()) {
             $this->dispatch('notify', message: 'Unauthorized action.', type: 'error');
             return;
         }
@@ -198,8 +199,7 @@ class Account extends Component
 
     public function deleteUser($id)
     {
-        // Prevent customers from deleting users
-        if (Auth::user()->role === 'customer') {
+        if (!$this->isAdmin()) {
             $this->dispatch('notify', message: 'Unauthorized action.', type: 'error');
             return;
         }

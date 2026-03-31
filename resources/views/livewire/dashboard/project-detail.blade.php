@@ -476,20 +476,24 @@
                             <input type="text" wire:model.defer="teamMemberSearchQuery" placeholder="Search by email or name..." class="flex-1 border border-gray-200 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
                             <button type="button" wire:click="searchTeamMembers" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Search</button>
                         </div>
-                        <button type="button" wire:click="$set('selectedTeamMembers', [])" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Clear Selection</button>
                         <div class="space-y-1 border border-gray-200 rounded-lg p-3 max-h-52 overflow-y-auto bg-white">
-                            @forelse($availableTeamMembers as $member)
-                                <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-2 py-2 rounded-lg transition group">
-                                    <input type="checkbox" wire:model.defer="selectedTeamMembers" value="{{ $member->id }}" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                                    <img src="{{ $member->profile_image_url }}" alt="{{ $member->name }}" class="w-7 h-7 rounded-full flex-shrink-0" />
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-semibold text-gray-900 truncate">{{ $member->name }}</p>
-                                        <p class="text-xs text-gray-600 truncate">{{ $member->email }} • {{ ucfirst($member->role) }}</p>
-                                    </div>
-                                </label>
-                            @empty
-                                <p class="text-sm text-gray-500 text-center py-5">No team members found</p>
-                            @endforelse
+                            @php($hasTeamMemberSearch = trim((string) $teamMemberSearchQuery) !== '')
+                            @if(!$hasTeamMemberSearch)
+                                <p class="text-sm text-gray-500 text-center py-5">พิมพ์ค้นหา Team Member ก่อน</p>
+                            @else
+                                @forelse($availableTeamMembers as $member)
+                                    <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-2 py-2 rounded-lg transition group">
+                                        <input type="checkbox" wire:model.defer="selectedTeamMembers" value="{{ $member->id }}" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                        <img src="{{ $member->profile_image_url }}" alt="{{ $member->name }}" class="w-7 h-7 rounded-full flex-shrink-0" />
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-semibold text-gray-900 truncate">{{ $member->name }}</p>
+                                            <p class="text-xs text-gray-600 truncate">{{ $member->email }} • {{ ucfirst($member->role) }}</p>
+                                        </div>
+                                    </label>
+                                @empty
+                                    <p class="text-sm text-gray-500 text-center py-5">No team members found</p>
+                                @endforelse
+                            @endif
                         </div>
                         @error('selectedTeamMembers') <p class="text-xs text-red-600 font-medium">{{ $message }}</p> @enderror
                         @error('selectedTeamMembers.*') <p class="text-xs text-red-600 font-medium">{{ $message }}</p> @enderror
@@ -537,24 +541,29 @@
                             <button type="button" wire:click="searchCustomers" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Search</button>
                         </div>
                         <div class="space-y-1 border border-gray-200 rounded-lg p-3 max-h-52 overflow-y-auto bg-white">
-                            <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-2 py-2 rounded-lg transition group">
-                                <input type="radio" name="selected_customer" wire:model.defer="selectedCustomer" value="" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-gray-900">No Customer</p>
-                                </div>
-                            </label>
-                            @forelse($customers as $customer)
+                            @php($hasCustomerSearch = trim((string) $customerSearchQuery) !== '')
+                            @if(!$hasCustomerSearch)
+                                <p class="text-sm text-gray-500 text-center py-5">พิมพ์ค้นหา Customer ก่อน</p>
+                            @else
                                 <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-2 py-2 rounded-lg transition group">
-                                    <input type="radio" name="selected_customer" wire:model.defer="selectedCustomer" value="{{ $customer->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                                    <img src="{{ $customer->profile_image_url }}" alt="{{ $customer->name }}" class="w-7 h-7 rounded-full flex-shrink-0" />
+                                    <input type="radio" name="selected_customer" wire:model.defer="selectedCustomer" value="" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-semibold text-gray-900">{{ $customer->name }}</p>
-                                        <p class="text-xs text-gray-600 truncate">{{ $customer->email }}</p>
+                                        <p class="text-sm font-semibold text-gray-900">No Customer</p>
                                     </div>
                                 </label>
-                            @empty
-                                <p class="text-sm font-medium text-gray-500 text-center py-5">No customers found</p>
-                            @endforelse
+                                @forelse($customers as $customer)
+                                    <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-2 py-2 rounded-lg transition group">
+                                        <input type="radio" name="selected_customer" wire:model.defer="selectedCustomer" value="{{ $customer->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                        <img src="{{ $customer->profile_image_url }}" alt="{{ $customer->name }}" class="w-7 h-7 rounded-full flex-shrink-0" />
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-semibold text-gray-900">{{ $customer->name }}</p>
+                                            <p class="text-xs text-gray-600 truncate">{{ $customer->email }}</p>
+                                        </div>
+                                    </label>
+                                @empty
+                                    <p class="text-sm font-medium text-gray-500 text-center py-5">No customers found</p>
+                                @endforelse
+                            @endif
                         </div>
                         @error('selectedCustomer') <p class="text-xs text-red-600 font-medium">{{ $message }}</p> @enderror
                         <button type="button" wire:click="updateCustomers" wire:loading.attr="disabled" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50">
@@ -757,15 +766,15 @@
 
     <!-- Edit Project Details Modal -->
     @if($showEditModal)
-        <div class="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto">
-            <div class="absolute inset-0 bg-black/50 z-[999] cursor-pointer" wire:click="$set('showEditModal', false)"></div>
-            <div class="relative w-full max-w-2xl bg-white rounded-lg shadow-2xl z-[1001] m-4 my-auto">
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white rounded-t-lg">
+        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+            <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('showEditModal', false)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001] pointer-events-auto">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Edit Project Details</h3>
                     <button wire:click="$set('showEditModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
 
-                <div class="max-h-[calc(100vh-200px)] overflow-y-auto p-6">
+                <div class="flex-1 overflow-y-auto p-5">
                     <form wire:submit.prevent="updateProject" class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Project Name</label>
@@ -781,7 +790,7 @@
 
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Status</label>
-                            <select wire:model.live="status" class="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition cursor-pointer">
+                            <select wire:model.defer="status" class="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition cursor-pointer">
                                 <option value="active">Active</option>
                                 <option value="on_hold">On Hold</option>
                                 <option value="completed">Completed</option>
@@ -835,18 +844,23 @@
                                 <button type="button" wire:click="searchCustomers" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Search</button>
                             </div>
                             <div class="space-y-1 border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto bg-white">
-                                @forelse($customers as $customer)
-                                    <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-3 py-2.5 rounded-lg transition group">
-                                        <input type="radio" wire:model.defer="selectedCustomer" value="{{ $customer->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                                        <img src="{{ $customer->profile_image_url }}" alt="{{ $customer->name }}" class="w-8 h-8 rounded-full flex-shrink-0" />
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-semibold text-gray-900">{{ $customer->name }}</p>
-                                            <p class="text-xs text-gray-600 truncate">{{ $customer->email }}</p>
-                                        </div>
-                                    </label>
-                                @empty
-                                    <p class="text-sm font-medium text-gray-500 text-center py-8">No customers found</p>
-                                @endforelse
+                                @php($hasCustomerSearch = trim((string) $customerSearchQuery) !== '')
+                                @if(!$hasCustomerSearch)
+                                    <p class="text-sm font-medium text-gray-500 text-center py-8">พิมพ์ค้นหา Customer ก่อน</p>
+                                @else
+                                    @forelse($customers as $customer)
+                                        <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-3 py-2.5 rounded-lg transition group">
+                                            <input type="radio" wire:model.defer="selectedCustomer" value="{{ $customer->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                            <img src="{{ $customer->profile_image_url }}" alt="{{ $customer->name }}" class="w-8 h-8 rounded-full flex-shrink-0" />
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-semibold text-gray-900">{{ $customer->name }}</p>
+                                                <p class="text-xs text-gray-600 truncate">{{ $customer->email }}</p>
+                                            </div>
+                                        </label>
+                                    @empty
+                                        <p class="text-sm font-medium text-gray-500 text-center py-8">No customers found</p>
+                                    @endforelse
+                                @endif
                             </div>
                             @error('selectedCustomer') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
                         </div>
@@ -888,18 +902,23 @@
                                 <button type="button" wire:click="searchTeamMembers" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Search</button>
                             </div>
                             <div class="space-y-1 border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto bg-white">
-                                @forelse($availableTeamMembers as $member)
-                                    <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-3 py-2.5 rounded-lg transition group">
-                                        <input type="radio" wire:model.defer="selectedTeamMember" value="{{ $member->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                                        <img src="{{ $member->profile_image_url }}" alt="{{ $member->name }}" class="w-8 h-8 rounded-full flex-shrink-0" />
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-semibold text-gray-900">{{ $member->name }}</p>
-                                            <p class="text-xs text-gray-600 truncate">{{ $member->email }} • {{ ucfirst($member->role) }}</p>
-                                        </div>
-                                    </label>
-                                @empty
-                                    <p class="text-sm text-gray-500 text-center py-8">No team members found</p>
-                                @endforelse
+                                @php($hasTeamMemberSearch = trim((string) $teamMemberSearchQuery) !== '')
+                                @if(!$hasTeamMemberSearch)
+                                    <p class="text-sm text-gray-500 text-center py-8">พิมพ์ค้นหา Team Member ก่อน</p>
+                                @else
+                                    @forelse($availableTeamMembers as $member)
+                                        <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-3 py-2.5 rounded-lg transition group">
+                                            <input type="radio" wire:model.defer="selectedTeamMember" value="{{ $member->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                            <img src="{{ $member->profile_image_url }}" alt="{{ $member->name }}" class="w-8 h-8 rounded-full flex-shrink-0" />
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-semibold text-gray-900">{{ $member->name }}</p>
+                                                <p class="text-xs text-gray-600 truncate">{{ $member->email }} • {{ ucfirst($member->role) }}</p>
+                                            </div>
+                                        </label>
+                                    @empty
+                                        <p class="text-sm text-gray-500 text-center py-8">No team members found</p>
+                                    @endforelse
+                                @endif
                             </div>
                             @error('selectedTeamMember') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
                         </div>
@@ -984,14 +1003,14 @@
 
     <!-- Delete Project Confirmation -->
     @if($confirmingDeleteId)
-        <div class="fixed inset-0 z-[1000] flex items-center justify-center">
-            <div class="absolute inset-0 bg-black/50 z-[999] cursor-pointer" wire:click="$set('confirmingDeleteId', null)"></div>
-            <div class="relative w-full max-w-md bg-white rounded-lg shadow-2xl z-[1001]">
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-red-50 rounded-t-lg">
+        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+            <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('confirmingDeleteId', null)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
                     <h3 class="text-lg font-black text-gray-900">Delete Project</h3>
                     <button wire:click="$set('confirmingDeleteId', null)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
-                <div class="p-6">
+                <div class="flex-1 overflow-y-auto p-5">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
                             <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1001,16 +1020,8 @@
                     </div>
                     <p class="text-sm font-medium text-gray-700 mb-6">Are you sure you want to delete this project? This will also delete all tasks. This action cannot be undone.</p>
                     <div class="flex gap-3">
-                        <button wire:click="deleteProject" wire:loading.attr="disabled" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
-                            <span wire:loading.remove wire:target="deleteProject">Delete</span>
-                            <span wire:loading wire:target="deleteProject" class="flex items-center gap-2">
-                                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                </svg>
-                            </span>
-                        </button>
-                        <button wire:click="$set('confirmingDeleteId', null)" wire:loading.attr="disabled" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition">Cancel</button>
+                        <button wire:click="deleteProject" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition">Delete</button>
+                        <button wire:click="$set('confirmingDeleteId', null)" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -1019,14 +1030,14 @@
 
     <!-- Delete Task Confirmation -->
     @if($confirmingDeleteTaskId)
-        <div class="fixed inset-0 z-[1000] flex items-center justify-center">
-            <div class="absolute inset-0 bg-black/50 z-[999] cursor-pointer" wire:click="$set('confirmingDeleteTaskId', null)"></div>
-            <div class="relative w-full max-w-md bg-white rounded-lg shadow-2xl z-[1001]">
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-red-50 rounded-t-lg">
+        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+            <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('confirmingDeleteTaskId', null)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
                     <h3 class="text-lg font-black text-gray-900">Delete Task</h3>
                     <button wire:click="$set('confirmingDeleteTaskId', null)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
-                <div class="p-6">
+                <div class="flex-1 overflow-y-auto p-5">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
                             <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1036,16 +1047,8 @@
                     </div>
                     <p class="text-sm font-medium text-gray-700 mb-6">Are you sure you want to delete this task? This action cannot be undone.</p>
                     <div class="flex gap-3">
-                        <button wire:click="deleteTask" wire:loading.attr="disabled" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
-                            <span wire:loading.remove wire:target="deleteTask">Delete</span>
-                            <span wire:loading wire:target="deleteTask" class="flex items-center gap-2">
-                                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                </svg>
-                            </span>
-                        </button>
-                        <button wire:click="$set('confirmingDeleteTaskId', null)" wire:loading.attr="disabled" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition">Cancel</button>
+                        <button wire:click="deleteTask" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition">Delete</button>
+                        <button wire:click="$set('confirmingDeleteTaskId', null)" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -1054,14 +1057,14 @@
 
     <!-- Delete File Confirmation -->
     @if($confirmingDeleteFileId)
-        <div class="fixed inset-0 z-[1000] flex items-center justify-center">
-            <div class="absolute inset-0 bg-black/50 z-[999] cursor-pointer" wire:click="$set('confirmingDeleteFileId', null)"></div>
-            <div class="relative w-full max-w-md bg-white rounded-lg shadow-2xl z-[1001]">
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-red-50 rounded-t-lg">
+        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+            <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('confirmingDeleteFileId', null)"></div>
+            <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
                     <h3 class="text-lg font-black text-gray-900">Delete File</h3>
                     <button wire:click="$set('confirmingDeleteFileId', null)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
-                <div class="p-6">
+                <div class="flex-1 overflow-y-auto p-5">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
                             <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1071,16 +1074,8 @@
                     </div>
                     <p class="text-sm font-medium text-gray-700 mb-6">Are you sure you want to delete this file? This action cannot be undone.</p>
                     <div class="flex gap-3">
-                        <button wire:click="deleteFile" wire:loading.attr="disabled" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
-                            <span wire:loading.remove wire:target="deleteFile">Delete</span>
-                            <span wire:loading wire:target="deleteFile" class="flex items-center gap-2">
-                                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                </svg>
-                            </span>
-                        </button>
-                        <button wire:click="$set('confirmingDeleteFileId', null)" wire:loading.attr="disabled" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition">Cancel</button>
+                        <button wire:click="deleteFile" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition">Delete</button>
+                        <button wire:click="$set('confirmingDeleteFileId', null)" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
                     </div>
                 </div>
             </div>

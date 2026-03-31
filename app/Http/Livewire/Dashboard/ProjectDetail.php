@@ -1082,30 +1082,34 @@ class ProjectDetail extends Component
     public function render()
     {
         $user = Auth::user();
+        $teamMemberSearchTerm = trim((string) $this->teamMemberSearchQuery);
+        $customerSearchTerm = trim((string) $this->customerSearchQuery);
 
         // Get available team members with search query (exclude project owner/creator)
-        $availableTeamMembers = User::where('role', 'freelance')
-            ->where('is_approved', true)
-            ->where('id', '!=', $this->project->created_by) // Exclude project creator
-            ->where('id', '!=', $this->project->freelance_id) // Exclude freelancer if assigned
-            ->when($this->teamMemberSearchQuery, function($q) {
-                $q->where(function($query) {
-                    $query->where('email', 'like', '%' . $this->teamMemberSearchQuery . '%')
-                          ->orWhere('name', 'like', '%' . $this->teamMemberSearchQuery . '%');
-                });
-            })
-            ->get();
+        $availableTeamMembers = collect();
+        if ($teamMemberSearchTerm !== '') {
+            $availableTeamMembers = User::where('role', 'freelance')
+                ->where('is_approved', true)
+                ->where('id', '!=', $this->project->created_by) // Exclude project creator
+                ->where('id', '!=', $this->project->freelance_id) // Exclude freelancer if assigned
+                ->where(function ($query) use ($teamMemberSearchTerm) {
+                    $query->where('email', 'like', '%' . $teamMemberSearchTerm . '%')
+                        ->orWhere('name', 'like', '%' . $teamMemberSearchTerm . '%');
+                })
+                ->get();
+        }
 
         // Get customers with search query
-        $customers = User::where('role', 'customer')
-            ->where('is_approved', true)
-            ->when($this->customerSearchQuery, function($q) {
-                $q->where(function($query) {
-                    $query->where('email', 'like', '%' . $this->customerSearchQuery . '%')
-                          ->orWhere('name', 'like', '%' . $this->customerSearchQuery . '%');
-                });
-            })
-            ->get();
+        $customers = collect();
+        if ($customerSearchTerm !== '') {
+            $customers = User::where('role', 'customer')
+                ->where('is_approved', true)
+                ->where(function ($query) use ($customerSearchTerm) {
+                    $query->where('email', 'like', '%' . $customerSearchTerm . '%')
+                        ->orWhere('name', 'like', '%' . $customerSearchTerm . '%');
+                })
+                ->get();
+        }
 
         // Get freelances with search query
         $freelances = User::where('role', 'freelance')

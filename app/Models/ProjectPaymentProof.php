@@ -15,6 +15,7 @@ class ProjectPaymentProof extends Model
         'user_id',
         'submitted_as',
         'amount',
+        'transfer_at',
         'slip_file',
         'note',
         'status',
@@ -26,6 +27,7 @@ class ProjectPaymentProof extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'transfer_at' => 'datetime',
         'reviewed_amount' => 'decimal:2',
         'reviewed_at' => 'datetime',
         'created_at' => 'datetime',

@@ -5,6 +5,7 @@ use App\Livewire\TestComponent;
 use App\Http\Livewire\Auth\Register;
 use App\Http\Livewire\Auth\RegistrationRevision;
 use App\Http\Livewire\Dashboard\ProjectDetail;
+use App\Http\Controllers\ChatController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -60,10 +61,5 @@ Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'logo
     ->name('logout')
     ->middleware('auth');
 
-// Admin routes
-Route::middleware(['auth', 'approved'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/users/create', [\App\Http\Controllers\Admin\UserController::class, 'create'])
-        ->name('users.create');
-    Route::post('/users', [\App\Http\Controllers\Admin\UserController::class, 'store'])
-        ->name('users.store');
-});
+Route::get('/projects/{project}/chats', [ChatController::class, 'fetchMessages'])->name('chats.fetch');
+Route::post('/projects/{project}/chats', [ChatController::class, 'sendMessage'])->name('chats.send');

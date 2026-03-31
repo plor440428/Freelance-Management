@@ -20,5 +20,55 @@
     </div>
 
     @livewireScripts
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('notify', (data) => {
+                const type = data.type || 'info';
+                const message = data.message || '';
+
+                let icon = 'info';
+                let title = 'Notification';
+
+                switch (type) {
+                    case 'success':
+                        icon = 'success';
+                        title = 'Success';
+                        break;
+                    case 'error':
+                        icon = 'error';
+                        title = 'Error';
+                        break;
+                    case 'warning':
+                        icon = 'warning';
+                        title = 'Warning';
+                        break;
+                    case 'info':
+                    default:
+                        icon = 'info';
+                        title = 'Info';
+                        break;
+                }
+
+                Swal.fire({
+                    icon: icon,
+                    title: title,
+                    text: message,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                });
+            });
+
+            Livewire.on('backToProjects', () => {
+                window.location.href = '{{ route("dashboard.projects") }}';
+            });
+
+            Livewire.on('projectDeleted', () => {
+                window.location.href = '{{ route("dashboard.projects") }}';
+            });
+        });
+    </script>
 </body>
 </html>

@@ -98,7 +98,7 @@ class User extends Authenticatable
 
     public function getProfileImageUrlAttribute()
     {
-        if ($this->profile_image_path) {
+        if ($this->profile_image_path && Storage::disk('public')->exists($this->profile_image_path)) {
             return Storage::disk('public')->url($this->profile_image_path);
         }
         return 'https://i.pravatar.cc/40?u=' . $this->id;
