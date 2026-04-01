@@ -9,6 +9,7 @@ use App\Models\File;
 use App\Models\Setting;
 use App\Models\PaymentProof;
 use App\Mail\AdminSignupRequest;
+use App\Mail\UserPendingApproval;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -250,6 +251,16 @@ class Register extends Component
                 }
             } else {
                 \Log::warning('No admin email recipients found for signup request');
+            }
+
+            // Always notify the applicant that registration is pending approval.
+            try {
+                Mail::to($user->email)->send(new UserPendingApproval($user));
+            } catch (\Throwable $mailError) {
+                \Log::error('User pending approval email failed', [
+                    'user_id' => $user->id,
+                    'error' => $mailError->getMessage(),
+                ]);
             }
 
             \Log::info('=== Registration Completed Successfully ===');

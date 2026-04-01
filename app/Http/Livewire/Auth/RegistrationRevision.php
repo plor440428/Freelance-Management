@@ -155,7 +155,7 @@ class RegistrationRevision extends Component
             'user_name' => $this->user->name,
         ]);
 
-        $this->redirect(route('login'), navigate: true);
+        return redirect()->route('login');
     }
 
     public function render()
