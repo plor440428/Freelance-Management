@@ -291,9 +291,9 @@
 
     <!-- Task Detail Modal -->
     @if($showTaskDetail && $selectedTask)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="closeTaskDetail"></div>
-            <div class="absolute inset-y-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl ring-1 ring-slate-200 flex flex-col z-[1001]">
+            <div class="relative z-[1001] w-full max-w-2xl max-h-[90vh] bg-white shadow-2xl ring-1 ring-slate-200 flex flex-col overflow-hidden">
                 <!-- Header -->
                 <div class="shrink-0 bg-gradient-to-r from-sky-50 to-white px-6 py-5 flex items-center justify-between border-b border-slate-200">
                     <div>
@@ -420,9 +420,9 @@
 
     <!-- Project Detail Modal -->
     @if($showProjectDetail && $selectedProject)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="closeProjectDetail"></div>
-            <div class="absolute inset-y-0 right-0 h-full w-full max-w-3xl bg-white shadow-2xl ring-1 ring-slate-200 flex flex-col z-[1001]">
+            <div class="relative z-[1001] w-full max-w-3xl max-h-[90vh] bg-white shadow-2xl ring-1 ring-slate-200 flex flex-col overflow-hidden">
                 <!-- Header -->
                 <div class="shrink-0 bg-gradient-to-r from-purple-50 to-white px-6 py-5 flex items-center justify-between border-b border-slate-200">
                     <div>

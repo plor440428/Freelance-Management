@@ -48,7 +48,7 @@
     <div class="dashboard-shell">
     <div class="flex min-h-screen">
         <!-- Sidebar -->
-        <aside id="sidebar" class="dash-sidebar fixed inset-y-0 left-0 z-20 w-64 transform -translate-x-0 md:translate-x-0 transition-transform duration-200 text-white shadow-lg">
+        <aside id="sidebar" class="dash-sidebar fixed inset-y-0 left-0 z-20 w-64 transform -translate-x-full md:translate-x-0 transition-transform duration-200 text-white shadow-lg">
             <div class="h-16 flex items-center justify-between px-4 border-b border-slate-800">
                 <div class="font-bold text-lg">FreelMane</div>
                 <button id="sidebarClose" class="md:hidden p-2 rounded-md text-white hover:bg-slate-800">
@@ -205,17 +205,29 @@
 
 <script>
     (function() {
-        const sidebar = document.getElementById('sidebar');
-        const toggle = document.getElementById('sidebarToggle');
-        const closeBtn = document.getElementById('sidebarClose');
+        function bindSidebarEvents() {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sidebarToggle');
+            const closeBtn = document.getElementById('sidebarClose');
 
-        const toggleSidebar = function() {
-            if (!sidebar) return;
-            sidebar.classList.toggle('-translate-x-full');
-        };
+            if (!sidebar || !toggle || !closeBtn) {
+                return;
+            }
 
-        toggle && toggle.addEventListener('click', toggleSidebar);
-        closeBtn && closeBtn.addEventListener('click', toggleSidebar);
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+            }
+
+            const toggleSidebar = function() {
+                sidebar.classList.toggle('-translate-x-full');
+            };
+
+            toggle.onclick = toggleSidebar;
+            closeBtn.onclick = toggleSidebar;
+        }
+
+        bindSidebarEvents();
+        document.addEventListener('livewire:navigated', bindSidebarEvents);
     })();
 </script>
 

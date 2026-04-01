@@ -533,9 +533,9 @@
 
     <!-- User Detail Modal -->
     @if($showUserDetail && $selectedUser)
-        <div class="fixed inset-0 z-[1000] overflow-hidden" wire:keydown.escape.window="closeUserDetail" tabindex="-1">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4" wire:keydown.escape.window="closeUserDetail" tabindex="-1">
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="closeUserDetail"></div>
-            <div class="absolute inset-y-0 right-0 h-full w-full max-w-3xl bg-white shadow-2xl ring-1 ring-slate-200 flex flex-col z-[1001]" wire:click.stop>
+            <div class="relative z-[1001] w-full max-w-3xl max-h-[90vh] bg-white shadow-2xl ring-1 ring-slate-200 flex flex-col overflow-hidden" wire:click.stop>
                 <div wire:loading.flex wire:target="approveUser,rejectUser" class="absolute inset-0 z-10 bg-white/70 items-center justify-center">
                     <div class="flex items-center gap-2 text-sm text-slate-700">
                         <svg class="h-5 w-5 animate-spin text-slate-600" viewBox="0 0 24 24" fill="none" aria-hidden="true">

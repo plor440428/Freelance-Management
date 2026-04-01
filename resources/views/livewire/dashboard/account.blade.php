@@ -132,9 +132,9 @@
 
     <!-- Create Modal -->
     @if($showCreateModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="$set('showCreateModal', false)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white/95 shadow-2xl border-l border-slate-200 flex flex-col h-screen max-h-screen z-[1001]">
+            <div class="relative z-[1001] w-full max-w-2xl max-h-[90vh] bg-white/95 shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
                     <div>
                         <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Account</p>
@@ -211,9 +211,9 @@
 
     <!-- Edit Modal -->
     @if($showEditModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="$set('showEditModal', false)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white/95 shadow-2xl border-l border-slate-200 flex flex-col h-screen max-h-screen z-[1001]">
+            <div class="relative z-[1001] w-full max-w-2xl max-h-[90vh] bg-white/95 shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
                     <div>
                         <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Account</p>
@@ -297,9 +297,9 @@
 
     <!-- Delete confirmation modal -->
     @if($confirmingDeleteId)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="$set('confirmingDeleteId', null)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white/95 shadow-2xl border-l border-slate-200 flex flex-col h-screen max-h-screen z-[1001]">
+            <div class="relative z-[1001] w-full max-w-md max-h-[90vh] bg-white/95 shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-red-50">
                     <h3 class="text-lg font-semibold text-slate-900">Delete Account</h3>
                     <button wire:click="$set('confirmingDeleteId', null)" class="text-slate-600 hover:text-slate-800 text-2xl leading-none">&times;</button>
@@ -317,9 +317,9 @@
 
     <!-- Subscription Modal -->
     @if($showSubscriptionModal && $viewingUser)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="closeSubscriptionModal"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-4xl bg-white/95 shadow-2xl border-l border-slate-200 flex flex-col h-screen max-h-screen z-[1001]">
+            <div class="relative z-[1001] w-full max-w-4xl max-h-[90vh] bg-white/95 shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b bg-white/95">
                     <h3 class="text-lg font-semibold">Subscription Details - {{ $viewingUser->name }}</h3>
                     <button wire:click="closeSubscriptionModal" class="text-slate-600 hover:text-slate-800 text-2xl leading-none">&times;</button>

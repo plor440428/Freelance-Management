@@ -1,8 +1,8 @@
 <div>
     @if($showModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm z-[1000]" wire:click="$set('showModal', false)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white/95 shadow-2xl border-l border-slate-200 flex flex-col h-screen max-h-screen z-[1001]">
+            <div class="relative z-[1001] w-full max-w-2xl max-h-[90vh] bg-white/95 shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
                 <div class="flex items-start justify-between gap-4 px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-widest text-blue-600">Account</p>

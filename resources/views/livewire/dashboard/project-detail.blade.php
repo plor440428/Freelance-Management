@@ -171,9 +171,9 @@
     @endif
 
     @if($showCancelModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="closeCancelModal"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+            <div class="relative z-[1001] w-full max-w-lg max-h-[90vh] bg-white shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
                     <h3 class="text-lg font-black text-gray-900">ยืนยันการยกเลิกโปรเจกต์</h3>
                     <button wire:click="closeCancelModal" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
@@ -953,9 +953,9 @@
 
     <!-- Edit Project Details Modal -->
     @if($showEditModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('showEditModal', false)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001] pointer-events-auto">
+            <div class="relative z-[1001] w-full max-w-2xl max-h-[90vh] bg-white shadow-2xl border border-gray-100 flex flex-col overflow-hidden pointer-events-auto">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Edit Project Details</h3>
                     <button wire:click="$set('showEditModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
@@ -1032,9 +1032,9 @@
 
     <!-- Edit Customers Modal -->
     @if($showEditCustomersModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('showEditCustomersModal', false)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+            <div class="relative z-[1001] w-full max-w-2xl max-h-[90vh] bg-white shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Manage Customers</h3>
                     <button wire:click="$set('showEditCustomersModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
@@ -1090,9 +1090,9 @@
 
     <!-- Edit Team Members Modal -->
     @if($showEditTeamMembersModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('showEditTeamMembersModal', false)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001] pointer-events-auto">
+            <div class="relative z-[1001] w-full max-w-2xl max-h-[90vh] bg-white shadow-2xl border border-gray-100 flex flex-col overflow-hidden pointer-events-auto">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Manage Team Member</h3>
                     <button wire:click="$set('showEditTeamMembersModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
@@ -1148,9 +1148,9 @@
 
     <!-- Edit Freelance Modal -->
     @if($showEditFreelanceModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('showEditFreelanceModal', false)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001] pointer-events-auto">
+            <div class="relative z-[1001] w-full max-w-lg max-h-[90vh] bg-white shadow-2xl border border-gray-100 flex flex-col overflow-hidden pointer-events-auto">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
                     <h3 class="text-lg font-black text-gray-900">Assign Freelance</h3>
                     <button wire:click="$set('showEditFreelanceModal', false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
@@ -1253,9 +1253,9 @@
 
     <!-- Delete Task Confirmation -->
     @if($confirmingDeleteTaskId)
-        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('confirmingDeleteTaskId', null)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+            <div class="relative z-[1001] w-full max-w-md max-h-[90vh] bg-white shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
                     <h3 class="text-lg font-black text-gray-900">Delete Task</h3>
                     <button wire:click="$set('confirmingDeleteTaskId', null)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
@@ -1280,9 +1280,9 @@
 
     <!-- Delete File Confirmation -->
     @if($confirmingDeleteFileId)
-        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('confirmingDeleteFileId', null)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+            <div class="relative z-[1001] w-full max-w-md max-h-[90vh] bg-white shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
                     <h3 class="text-lg font-black text-gray-900">Delete File</h3>
                     <button wire:click="$set('confirmingDeleteFileId', null)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>

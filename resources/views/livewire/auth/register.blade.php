@@ -382,11 +382,9 @@ function togglePassword(inputId, eyeId) {
                     </div>
                 </div>
             `,
-            showCancelButton: true,
-            confirmButtonText: 'ไปหน้าเข้าสู่ระบบ',
-            cancelButtonText: 'ปิด',
+            showCancelButton: false,
+            confirmButtonText: 'รับทราบ',
             confirmButtonColor: '#000000',
-            cancelButtonColor: '#6B7280',
             allowOutsideClick: false,
             allowEscapeKey: false,
             width: '600px'

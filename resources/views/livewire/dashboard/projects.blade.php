@@ -320,9 +320,9 @@
 
     <!-- Create Project Modal -->
     @if($showCreateModal)
-        <div class="fixed inset-0 z-[1000] overflow-hidden">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[1000]" wire:click="$set('showCreateModal', false)"></div>
-            <div class="absolute right-0 top-0 h-screen max-h-screen w-full max-w-2xl bg-white/95 shadow-2xl ring-1 ring-slate-200 flex flex-col z-[1001]">
+            <div class="relative z-[1001] w-full max-w-2xl max-h-[90vh] bg-white/95 shadow-2xl ring-1 ring-slate-200 flex flex-col overflow-hidden">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gradient-to-r from-white to-gray-50">
                     <div class="flex items-center gap-3">

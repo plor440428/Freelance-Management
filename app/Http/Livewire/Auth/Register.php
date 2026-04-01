@@ -240,7 +240,14 @@ class Register extends Component
                     'user_id' => $user->id,
                 ]);
 
-                Mail::to($adminEmails)->send(new AdminSignupRequest($user, $paymentProof));
+                try {
+                    Mail::to($adminEmails)->send(new AdminSignupRequest($user, $paymentProof));
+                } catch (\Throwable $mailError) {
+                    \Log::error('Admin signup email failed', [
+                        'user_id' => $user->id,
+                        'error' => $mailError->getMessage(),
+                    ]);
+                }
             } else {
                 \Log::warning('No admin email recipients found for signup request');
             }
@@ -256,7 +263,7 @@ class Register extends Component
             // Also show notification
             $this->dispatch('show-notification', [
                 'type' => 'success',
-                'message' => '✓ Registration successful! Please check your email for verification.'
+                'message' => 'ลงทะเบียนสำเร็จแล้ว กรุณารอแอดมินอนุมัติบัญชี'
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
