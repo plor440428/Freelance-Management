@@ -71,8 +71,21 @@ class Approve extends Component
                 'rejected_by' => null,
             ]);
 
-            // Approve payment proof if exists
-            if ($this->selectedProof) {
+            $pendingProofs = PaymentProof::where('user_id', $this->selectedUser->id)
+                ->where('status', 'pending')
+                ->get();
+
+            if ($pendingProofs->isNotEmpty()) {
+                foreach ($pendingProofs as $proof) {
+                    $proof->update([
+                        'status' => 'approved',
+                        'admin_note' => $this->adminNote,
+                        'approved_by' => auth()->id(),
+                        'approved_at' => now(),
+                    ]);
+                }
+                $this->selectedProof = $pendingProofs->first()->fresh();
+            } elseif ($this->selectedProof) {
                 $this->selectedProof->update([
                     'status' => 'approved',
                     'admin_note' => $this->adminNote,
@@ -88,6 +101,7 @@ class Approve extends Component
                 'acted_by' => auth()->id(),
                 'meta' => [
                     'payment_proof_id' => $this->selectedProof?->id,
+                    'payment_proof_ids' => isset($pendingProofs) ? $pendingProofs->pluck('id')->values()->all() : [],
                 ],
             ]);
 
@@ -141,8 +155,21 @@ class Approve extends Component
             ['user' => $this->selectedUser->id]
         );
 
-        // Reject payment proof if exists
-        if ($this->selectedProof) {
+        $pendingProofs = PaymentProof::where('user_id', $this->selectedUser->id)
+            ->where('status', 'pending')
+            ->get();
+
+        if ($pendingProofs->isNotEmpty()) {
+            foreach ($pendingProofs as $proof) {
+                $proof->update([
+                    'status' => 'rejected',
+                    'admin_note' => $reason,
+                    'approved_by' => auth()->id(),
+                    'approved_at' => now(),
+                ]);
+            }
+            $this->selectedProof = $pendingProofs->first()->fresh();
+        } elseif ($this->selectedProof) {
             $this->selectedProof->update([
                 'status' => 'rejected',
                 'admin_note' => $reason,
@@ -168,6 +195,7 @@ class Approve extends Component
             'acted_by' => auth()->id(),
             'meta' => [
                 'payment_proof_id' => $this->selectedProof?->id,
+                'payment_proof_ids' => $pendingProofs->pluck('id')->values()->all(),
             ],
         ]);
 
@@ -208,13 +236,13 @@ class Approve extends Component
 
         $userName = $this->selectedUser->name;
 
-        // Delete payment proofs first
-        if ($this->selectedProof) {
-            // Delete payment slip file if exists
-            if ($this->selectedProof->proof_file) {
-                \Storage::disk('public')->delete($this->selectedProof->proof_file);
+        // Delete all payment proofs first
+        $proofs = PaymentProof::where('user_id', $this->selectedUser->id)->get();
+        foreach ($proofs as $proof) {
+            if ($proof->proof_file) {
+                \Storage::disk('public')->delete($proof->proof_file);
             }
-            $this->selectedProof->delete();
+            $proof->delete();
         }
 
         // Delete profile image if exists

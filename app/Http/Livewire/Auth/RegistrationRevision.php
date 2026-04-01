@@ -12,6 +12,7 @@ use App\Mail\AdminRevisionSubmitted;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\DB;
 
 class RegistrationRevision extends Component
 {
@@ -25,7 +26,8 @@ class RegistrationRevision extends Component
     public $password_confirmation = '';
     public $role = 'customer';
     public $profile_image = null;
-    public $payment_slip = null;
+    public $payment_slips = [];
+    public $payment_slip_notes = [];
 
     public function mount(User $user)
     {
@@ -47,83 +49,127 @@ class RegistrationRevision extends Component
             'password' => 'nullable|string|min:6|max:255|confirmed',
             'role' => 'required|in:customer,freelance',
             'profile_image' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
-            'payment_slip' => 'nullable|file|mimes:jpeg,jpg,png,gif,pdf|max:5120',
+            'payment_slips' => 'nullable|array',
+            'payment_slips.*' => 'file|mimes:jpeg,jpg,png,gif,pdf|max:5120',
+            'payment_slip_notes' => 'nullable|array',
+            'payment_slip_notes.*' => 'nullable|string|max:500',
         ];
+    }
+
+    public function updatedPaymentSlips()
+    {
+        $existingNotes = $this->payment_slip_notes;
+        $this->payment_slip_notes = [];
+
+        foreach ($this->payment_slips as $index => $_file) {
+            $this->payment_slip_notes[$index] = $existingNotes[$index] ?? '';
+        }
+    }
+
+    public function removePaymentSlip($index)
+    {
+        if (!isset($this->payment_slips[$index])) {
+            return;
+        }
+
+        unset($this->payment_slips[$index], $this->payment_slip_notes[$index]);
+
+        $this->payment_slips = array_values($this->payment_slips);
+        $this->payment_slip_notes = array_values($this->payment_slip_notes);
     }
 
     public function submitRevision()
     {
         $validatedData = $this->validate();
 
-        $this->user->name = trim($validatedData['name']);
-        $this->user->email = strtolower(trim($validatedData['email']));
-        $this->user->role = $validatedData['role'];
-        $this->user->is_approved = false;
-        $this->user->approved_at = null;
-        $this->user->approved_by = null;
-        $this->user->rejection_reason = null;
-        $this->user->rejected_at = null;
-        $this->user->rejected_by = null;
+        $uploadedSlips = $validatedData['payment_slips'] ?? [];
+        $slipNotes = $validatedData['payment_slip_notes'] ?? [];
 
-        if (!empty($validatedData['password'])) {
-            $this->user->password = Hash::make($validatedData['password']);
-        }
+        DB::beginTransaction();
 
-        $this->user->save();
+        try {
+            $this->user->name = trim($validatedData['name']);
+            $this->user->email = strtolower(trim($validatedData['email']));
+            $this->user->role = $validatedData['role'];
+            $this->user->is_approved = false;
+            $this->user->approved_at = null;
+            $this->user->approved_by = null;
+            $this->user->rejection_reason = null;
+            $this->user->rejected_at = null;
+            $this->user->rejected_by = null;
 
-        if ($this->profile_image) {
-            $filename = 'profile_' . $this->user->id . '_' . time() . '.' . $this->profile_image->getClientOriginalExtension();
-            $path = $this->profile_image->storeAs('profiles', $filename, 'public');
-
-            File::create([
-                'module_name' => 'user',
-                'module_id' => $this->user->id,
-                'file_name' => $this->profile_image->getClientOriginalName(),
-                'file_path' => $path,
-                'file_type' => 'image',
-                'mime_type' => $this->profile_image->getMimeType(),
-                'file_size' => $this->profile_image->getSize(),
-            ]);
-
-            $this->user->profile_image_path = $path;
-            $this->user->save();
-        }
-
-        if ($this->payment_slip) {
-            $slipFilename = 'payment_slip_' . $this->user->id . '_' . time() . '.' . $this->payment_slip->getClientOriginalExtension();
-            $slipPath = $this->payment_slip->storeAs('payment_slips', $slipFilename, 'public');
-
-            PaymentProof::create([
-                'user_id' => $this->user->id,
-                'subscription_type' => 'lifetime',
-                'amount' => PaymentProof::where('user_id', $this->user->id)->latest()->value('amount') ?? 0,
-                'proof_file' => $slipPath,
-                'status' => 'pending',
-            ]);
-        } else {
-            // Create a pending payment proof entry even without file
-            // to enable admin review buttons
-            $lastProof = PaymentProof::where('user_id', $this->user->id)->latest()->first();
-            if ($lastProof) {
-                PaymentProof::create([
-                    'user_id' => $this->user->id,
-                    'subscription_type' => $lastProof->subscription_type,
-                    'amount' => $lastProof->amount,
-                    'proof_file' => $lastProof->proof_file,
-                    'status' => 'pending',
-                ]);
+            if (!empty($validatedData['password'])) {
+                $this->user->password = Hash::make($validatedData['password']);
             }
-        }
 
-        ApprovalLog::create([
-            'user_id' => $this->user->id,
-            'action' => 'revision_submitted',
-            'reason' => null,
-            'acted_by' => null,
-            'meta' => [
-                'submitted_at' => now()->toDateTimeString(),
-            ],
-        ]);
+            $this->user->save();
+
+            if ($this->profile_image) {
+                $filename = 'profile_' . $this->user->id . '_' . time() . '.' . $this->profile_image->getClientOriginalExtension();
+                $path = $this->profile_image->storeAs('profiles', $filename, 'public');
+
+                File::create([
+                    'module_name' => 'user',
+                    'module_id' => $this->user->id,
+                    'file_name' => $this->profile_image->getClientOriginalName(),
+                    'file_path' => $path,
+                    'file_type' => 'image',
+                    'mime_type' => $this->profile_image->getMimeType(),
+                    'file_size' => $this->profile_image->getSize(),
+                ]);
+
+                $this->user->profile_image_path = $path;
+                $this->user->save();
+            }
+
+            $baseAmount = (float) (PaymentProof::where('user_id', $this->user->id)->latest()->value('amount') ?? 0);
+
+            if (!empty($uploadedSlips)) {
+                foreach ($uploadedSlips as $index => $slip) {
+                    $slipFilename = 'payment_slip_' . $this->user->id . '_' . time() . '_' . $index . '.' . $slip->getClientOriginalExtension();
+                    $slipPath = $slip->storeAs('payment_slips', $slipFilename, 'public');
+
+                    PaymentProof::create([
+                        'user_id' => $this->user->id,
+                        'subscription_type' => 'lifetime',
+                        'amount' => $baseAmount,
+                        'proof_file' => $slipPath,
+                        'status' => 'pending',
+                        'user_note' => isset($slipNotes[$index]) ? trim((string) $slipNotes[$index]) : null,
+                    ]);
+                }
+            } else {
+                // Keep current behavior: create a pending record even without new file
+                // so admin still sees the user in pending review.
+                $lastProof = PaymentProof::where('user_id', $this->user->id)->latest()->first();
+                if ($lastProof) {
+                    PaymentProof::create([
+                        'user_id' => $this->user->id,
+                        'subscription_type' => $lastProof->subscription_type,
+                        'amount' => $lastProof->amount,
+                        'proof_file' => $lastProof->proof_file,
+                        'status' => 'pending',
+                        'user_note' => null,
+                    ]);
+                }
+            }
+
+            ApprovalLog::create([
+                'user_id' => $this->user->id,
+                'action' => 'revision_submitted',
+                'reason' => null,
+                'acted_by' => null,
+                'meta' => [
+                    'submitted_at' => now()->toDateTimeString(),
+                    'slips_uploaded' => count($uploadedSlips),
+                ],
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
 
         $adminEmails = User::where('role', 'admin')
             ->pluck('email')

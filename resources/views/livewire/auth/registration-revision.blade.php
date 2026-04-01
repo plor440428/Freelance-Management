@@ -125,34 +125,83 @@
                             </div>
 
                             <div class="rounded-lg border border-slate-200 p-4">
-                                <label class="text-sm font-medium text-slate-700">อัปโหลดสลิปใหม่ (ถ้ามี)</label>
+                                <label class="text-sm font-medium text-slate-700">อัปโหลดสลิปใหม่ (แนบได้หลายไฟล์)</label>
                                 <div class="mt-3 flex items-center gap-3">
                                     <input
-                                        id="payment_slip"
+                                        id="payment_slips"
                                         type="file"
-                                        wire:model.live="payment_slip"
+                                        wire:model.live="payment_slips"
+                                        multiple
                                         accept="image/*,application/pdf"
                                         class="hidden" />
-                                    <button type="button" onclick="document.getElementById('payment_slip').click()"
+                                    <button type="button" onclick="document.getElementById('payment_slips').click()"
                                             class="px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50">
                                         เลือกไฟล์สลิป
                                     </button>
-                                    <span class="text-xs text-slate-500" wire:loading.remove wire:target="payment_slip">
-                                        {{ $payment_slip ? $payment_slip->getClientOriginalName() : 'ยังไม่ได้เลือกไฟล์' }}
+                                    <span class="text-xs text-slate-500" wire:loading.remove wire:target="payment_slips">
+                                        {{ count($payment_slips) > 0 ? 'เลือกแล้ว ' . count($payment_slips) . ' ไฟล์' : 'ยังไม่ได้เลือกไฟล์' }}
                                     </span>
-                                    <span class="text-xs text-slate-500" wire:loading wire:target="payment_slip">กำลังอัปโหลด...</span>
+                                    <span class="text-xs text-slate-500" wire:loading wire:target="payment_slips">กำลังอัปโหลด...</span>
                                 </div>
-                                <p class="mt-2 text-xs text-slate-500">รองรับไฟล์ภาพหรือ PDF ขนาดไม่เกิน 5MB</p>
-                                @error('payment_slip') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+                                <p class="mt-2 text-xs text-slate-500">รองรับไฟล์ภาพหรือ PDF ขนาดไม่เกิน 5MB ต่อไฟล์</p>
+                                @error('payment_slips') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+                                @error('payment_slips.*') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+
+                                @if(!empty($payment_slips))
+                                    <div class="mt-4 space-y-3">
+                                        @foreach($payment_slips as $index => $slip)
+                                            <div class="rounded-lg border border-slate-200 p-3 bg-slate-50" wire:key="revision-slip-{{ $index }}">
+                                                <div class="flex items-start justify-between gap-3">
+                                                    <div class="min-w-0">
+                                                        <p class="text-sm font-medium text-slate-800 truncate">{{ $slip->getClientOriginalName() }}</p>
+                                                        <p class="text-xs text-slate-500 mt-1">ไฟล์ที่ {{ $index + 1 }}</p>
+                                                    </div>
+                                                    <button type="button"
+                                                            wire:click="removePaymentSlip({{ $index }})"
+                                                            class="text-xs px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50">
+                                                        ลบไฟล์นี้
+                                                    </button>
+                                                </div>
+                                                <div class="mt-3">
+                                                    <label class="text-xs font-medium text-slate-600">โน้ตสำหรับสลิปใบนี้ (ถ้ามี)</label>
+                                                    <textarea
+                                                        wire:model.defer="payment_slip_notes.{{ $index }}"
+                                                        rows="2"
+                                                        class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                                                        placeholder="เช่น ใบเก่า/ใบใหม่, ยอดที่แก้ไข, วันที่โอน"></textarea>
+                                                    @error('payment_slip_notes.' . $index) <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </div>
                         </div>
+
+                        @php
+                            $existingProofs = $user->paymentProofs()->latest()->take(5)->get();
+                        @endphp
+                        @if($existingProofs->isNotEmpty())
+                            <div class="rounded-lg border border-slate-200 p-4">
+                                <h4 class="text-sm font-semibold text-slate-800">สลิปที่เคยส่งล่าสุด</h4>
+                                <p class="mt-1 text-xs text-slate-500">หากต้องการส่งสลิปเก่าและใหม่พร้อมกัน ให้แนบไฟล์ทั้งหมดอีกครั้งพร้อมโน้ตแต่ละใบ</p>
+                                <div class="mt-3 space-y-2">
+                                    @foreach($existingProofs as $proof)
+                                        <div class="flex items-center justify-between gap-3 rounded border border-slate-200 px-3 py-2 text-xs text-slate-600">
+                                            <span class="truncate">{{ basename((string) $proof->proof_file) }}</span>
+                                            <span class="px-2 py-1 rounded-full bg-slate-100">{{ ucfirst($proof->status) }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
 
                         <div class="flex flex-col sm:flex-row items-center gap-3">
                             <button
                                 type="submit"
                                 wire:loading.attr="disabled"
                                 wire:loading.class="opacity-60 cursor-not-allowed"
-                                wire:target="submitRevision,profile_image,payment_slip"
+                                wire:target="submitRevision,profile_image,payment_slips"
                                 class="w-full sm:w-auto px-6 py-3 rounded-lg text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 inline-flex items-center gap-2">
                                 <svg wire:loading wire:target="submitRevision" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

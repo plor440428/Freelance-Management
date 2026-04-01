@@ -15,6 +15,7 @@ class PaymentProof extends Model
         'subscription_type',
         'amount',
         'proof_file',
+        'user_note',
         'status',
         'admin_note',
         'approved_by',

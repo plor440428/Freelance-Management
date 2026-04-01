@@ -606,8 +606,38 @@
                         </div>
                     </div>
 
-                    <!-- Payment Slip -->
-                    @if($selectedProof && $selectedProof->proof_file)
+                    @php
+                        $pendingProofs = $selectedUser->paymentProofs->where('status', 'pending')->values();
+                        $olderProofs = $selectedUser->paymentProofs->where('status', '!=', 'pending')->values();
+                    @endphp
+
+                    <!-- Pending Payment Slips -->
+                    @if($pendingProofs->count() > 0)
+                        <div class="mb-6">
+                            <h5 class="font-semibold mb-3 text-lg text-slate-900">Payment Slips ที่ส่งรอบนี้ ({{ $pendingProofs->count() }} ไฟล์)</h5>
+                            <div class="space-y-4">
+                                @foreach($pendingProofs as $proof)
+                                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 overflow-hidden">
+                                        <div class="flex items-center justify-between gap-3 mb-3">
+                                            <p class="text-sm font-semibold text-slate-700">Slip #{{ $loop->iteration }}</p>
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700">Pending</span>
+                                        </div>
+                                        @if($proof->proof_file_url)
+                                            <img src="{{ $proof->proof_file_url }}"
+                                                 alt="Payment Slip"
+                                                 class="w-full max-h-[600px] object-contain rounded-lg shadow-sm">
+                                        @endif
+                                        @if(!empty($proof->user_note))
+                                            <div class="mt-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+                                                <p class="font-medium">หมายเหตุจากผู้สมัคร</p>
+                                                <p class="mt-1">{{ $proof->user_note }}</p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @elseif($selectedProof && $selectedProof->proof_file)
                         <div class="mb-6">
                             <h5 class="font-semibold mb-3 text-lg text-slate-900">Payment Slip</h5>
                             <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 overflow-hidden">
@@ -615,27 +645,34 @@
                                      alt="Payment Slip"
                                      class="w-full max-h-[600px] object-contain rounded-lg shadow-sm">
                             </div>
+                            @if(!empty($selectedProof->user_note))
+                                <div class="mt-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+                                    <p class="font-medium">หมายเหตุจากผู้สมัคร</p>
+                                    <p class="mt-1">{{ $selectedProof->user_note }}</p>
+                                </div>
+                            @endif
                         </div>
                     @endif
 
-                    <!-- Show Old Payment Proof if User Submitted Revision -->
-                    @php
-                        $otherProofs = $selectedUser->paymentProofs->where('status', '!=', $selectedProof?->status ?? 'pending');
-                    @endphp
-                    @if($otherProofs->count() > 0 && $selectedProof->status === 'pending')
+                    @if($olderProofs->count() > 0 && $pendingProofs->count() > 0)
                         <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                            <h5 class="font-semibold mb-3 text-lg text-slate-900">ข้อมูลการแก้ไข</h5>
-                            <p class="text-sm text-slate-600 mb-4">ผู้ใช้ได้ส่งข้อมูลแก้ไขใหม่หลังจากถูกปฏิเสธ เปรียบเทียบการเปลี่ยนแปลงด้านล่าง:</p>
-                            
+                            <h5 class="font-semibold mb-3 text-lg text-slate-900">สลิปที่เคยส่งก่อนหน้า</h5>
                             <div class="space-y-3">
-                                @foreach($otherProofs as $oldProof)
+                                @foreach($olderProofs as $oldProof)
                                     <div class="bg-white rounded-lg p-3 border border-slate-200">
-                                        <p class="text-xs font-semibold text-slate-500 uppercase mb-2">Payment Slip เก่า (สถานะ: {{ ucfirst($oldProof->status) }})</p>
+                                        <p class="text-xs font-semibold text-slate-500 uppercase mb-2">
+                                            สถานะ: {{ ucfirst($oldProof->status) }}
+                                        </p>
                                         <div class="border border-slate-200 rounded-lg p-3 bg-slate-50 overflow-hidden">
                                             <img src="{{ $oldProof->proof_file_url }}"
                                                  alt="Old Payment Slip"
                                                  class="w-full max-h-[300px] object-contain rounded shadow-sm">
                                         </div>
+                                        @if(!empty($oldProof->user_note))
+                                            <div class="mt-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+                                                {{ $oldProof->user_note }}
+                                            </div>
+                                        @endif
                                     </div>
                                 @endforeach
                             </div>
