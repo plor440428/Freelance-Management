@@ -1,5 +1,5 @@
 @extends('layouts.app')
 
 @section('content')
-  @livewire('dashboard.container')
+  @livewire('dashboard.container', [], key(request()->path()))
 @endsection

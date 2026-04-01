@@ -963,11 +963,7 @@ class ProjectDetail extends Component
         session()->flash('notify_type', 'success');
         $this->confirmingDeleteId = null;
 
-        $targetUrl = route('dashboard.projects');
-
-        $this->dispatch('projectDeleted', url: $targetUrl);
-
-        return redirect()->to($targetUrl);
+        return redirect()->to(route('dashboard.projects'));
     }
 
     public function addNewTask()

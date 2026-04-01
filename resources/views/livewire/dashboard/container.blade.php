@@ -177,9 +177,13 @@
                     @break
                     @case('projects')
                     @if($projectDetailId)
-                    @livewire('dashboard.project-detail', ['id' => $projectDetailId], key('project-detail-'.$projectDetailId.'-'.md5(request()->getQueryString() ?? '')))
+                    <div wire:key="projects-detail-shell-{{ $projectDetailId }}-{{ md5(request()->getQueryString() ?? '') }}">
+                        @livewire('dashboard.project-detail', ['id' => $projectDetailId], key('project-detail-'.$projectDetailId.'-'.md5(request()->getQueryString() ?? '')))
+                    </div>
                     @else
-                    @livewire('dashboard.projects')
+                    <div wire:key="projects-index-shell">
+                        @livewire('dashboard.projects')
+                    </div>
                     @endif
                     @break
                     @case('tasks')

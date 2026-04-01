@@ -14,7 +14,7 @@
                 <p class="text-gray-600">Manage and track all your projects</p>
             </div>
             @if(auth()->user()->role !== 'customer')
-                <button wire:click="$set('showCreateModal', true)" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 font-medium transition flex items-center gap-2 shadow-lg">
+                <button type="button" wire:click.prevent="$set('showCreateModal', true)" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 font-medium transition flex items-center gap-2 shadow-lg">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
@@ -302,7 +302,7 @@
                     <p class="text-gray-700 text-lg font-medium mb-2">No projects found</p>
                     <p class="text-gray-600 text-sm mb-6">Get started by creating your first project</p>
                     @if(auth()->user()->role !== 'customer')
-                        <button wire:click="$set('showCreateModal', true)" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition">
+                        <button type="button" wire:click.prevent="$set('showCreateModal', true)" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition">
                             Create a Project
                         </button>
                     @endif
