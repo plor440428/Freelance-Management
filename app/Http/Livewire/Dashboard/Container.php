@@ -7,10 +7,25 @@ use Livewire\Component;
 class Container extends Component
 {
     public $active = 'home';
+    public $projectDetailId = null;
 
     public function mount()
     {
         $path = trim((string) request()->path(), '/');
+
+        if (preg_match('#^dashboard/projects/(\d+)$#', $path, $matches)) {
+            $this->active = 'projects';
+            $this->projectDetailId = (int) $matches[1];
+
+            if (session()->has('notify_message')) {
+                $this->dispatch('notify',
+                    message: session()->pull('notify_message'),
+                    type: session()->pull('notify_type', 'success')
+                );
+            }
+
+            return;
+        }
 
         $sectionMap = [
             'dashboard' => 'home',
@@ -21,7 +36,6 @@ class Container extends Component
             'dashboard/approve' => 'approve',
             'dashboard/settings' => 'settings',
         ];
-        
 
         $this->active = $sectionMap[$path] ?? 'home';
 
@@ -36,6 +50,7 @@ class Container extends Component
     public function setActive($name)
     {
         $this->active = $name;
+        $this->projectDetailId = null;
     }
 
     public function canSeeMenu($menuName)

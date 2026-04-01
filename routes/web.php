@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Livewire\TestComponent;
 use App\Http\Livewire\Auth\Register;
 use App\Http\Livewire\Auth\RegistrationRevision;
-use App\Http\Livewire\Dashboard\ProjectDetail;
 use App\Http\Controllers\ChatController;
 
 Route::get('/', function () {
@@ -65,7 +64,7 @@ Route::view('/dashboard/settings', 'dashboard')
     ->middleware(['auth', 'approved'])
     ->name('dashboard.settings');
 
-Route::get('/dashboard/projects/{id}', ProjectDetail::class)
+Route::view('/dashboard/projects/{id}', 'dashboard')
     ->middleware(['auth', 'approved'])
     ->name('dashboard.projects.detail');
 

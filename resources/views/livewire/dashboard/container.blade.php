@@ -176,7 +176,11 @@
                     @livewire('dashboard.home')
                     @break
                     @case('projects')
+                    @if($projectDetailId)
+                    @livewire('dashboard.project-detail', ['id' => $projectDetailId], key('project-detail-'.$projectDetailId.'-'.md5(request()->getQueryString() ?? '')))
+                    @else
                     @livewire('dashboard.projects')
+                    @endif
                     @break
                     @case('tasks')
                     @livewire('dashboard.tasks')
