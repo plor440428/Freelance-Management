@@ -41,9 +41,29 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'approved'])->name('dashboard');
 
+Route::view('/dashboard/home', 'dashboard')
+    ->middleware(['auth', 'approved'])
+    ->name('dashboard.home');
+
 Route::view('/dashboard/projects', 'dashboard')
     ->middleware(['auth', 'approved'])
     ->name('dashboard.projects');
+
+Route::view('/dashboard/tasks', 'dashboard')
+    ->middleware(['auth', 'approved'])
+    ->name('dashboard.tasks');
+
+Route::view('/dashboard/account', 'dashboard')
+    ->middleware(['auth', 'approved'])
+    ->name('dashboard.account');
+
+Route::view('/dashboard/approve', 'dashboard')
+    ->middleware(['auth', 'approved'])
+    ->name('dashboard.approve');
+
+Route::view('/dashboard/settings', 'dashboard')
+    ->middleware(['auth', 'approved'])
+    ->name('dashboard.settings');
 
 Route::get('/dashboard/projects/{id}', ProjectDetail::class)
     ->middleware(['auth', 'approved'])

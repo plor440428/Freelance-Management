@@ -27,6 +27,8 @@ class ProjectDetail extends Component
 
     public $projectId;
     public $project;
+    public $returnTo = 'dashboard.projects';
+    public $returnQuery = [];
 
     public $showEditModal = false;
     public $showEditCustomersModal = false;
@@ -80,12 +82,37 @@ class ProjectDetail extends Component
     public function mount($id)
     {
         $this->projectId = $id;
+
+        $requestedReturnTo = (string) request()->query('return_to', 'dashboard.projects');
+        $allowedReturnRoutes = [
+            'dashboard.projects',
+            'dashboard.tasks',
+            'dashboard.home',
+            'dashboard.account',
+            'dashboard.approve',
+            'dashboard.settings',
+        ];
+
+        $this->returnTo = in_array($requestedReturnTo, $allowedReturnRoutes, true)
+            ? $requestedReturnTo
+            : 'dashboard.projects';
+
+        if ($this->returnTo === 'dashboard.projects') {
+            $this->returnQuery = request()->only([
+                'search',
+                'filterStatus',
+                'filterFreelance',
+                'filterCustomer',
+                'page',
+            ]);
+        }
+
         $this->loadProject();
     }
 
     public function backToProjects()
     {
-        $this->dispatch('backToProjects');
+        return $this->redirectRoute($this->returnTo, $this->returnQuery, navigate: true);
     }
 
     public function loadProject()
@@ -936,8 +963,11 @@ class ProjectDetail extends Component
         session()->flash('notify_type', 'success');
         $this->confirmingDeleteId = null;
 
-        // Use a regular HTTP redirect for reliability after destructive actions.
-        return redirect()->route('dashboard.projects');
+        $targetUrl = route('dashboard.projects');
+
+        $this->dispatch('projectDeleted', url: $targetUrl);
+
+        return redirect()->to($targetUrl);
     }
 
     public function addNewTask()

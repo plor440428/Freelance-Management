@@ -544,7 +544,7 @@
                         @endphp
 
                         @if($canManageProject && ($user->role === 'admin' || $selectedProject->created_by === $user->id || $selectedProject->freelance_id === $user->id))
-                            <a href="{{ route('dashboard.projects.detail', $selectedProject->id) }}"
+                            <a wire:navigate href="{{ route('dashboard.projects.detail', ['id' => $selectedProject->id, 'return_to' => 'dashboard.tasks']) }}"
                                class="flex-1 px-4 py-3 bg-sky-600 text-white rounded-xl text-center hover:bg-sky-700 font-medium transition-colors">
                                 ไปที่โปรเจกต์
                             </a>

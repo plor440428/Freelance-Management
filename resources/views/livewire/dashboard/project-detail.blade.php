@@ -1224,7 +1224,16 @@
                     </div>
                     <p class="text-sm font-medium text-gray-700 mb-6">Are you sure you want to delete this project? This will also delete all tasks.</p>
                     <div class="flex gap-3">
-                        <button type="button" wire:click.prevent="deleteProject" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition">Delete</button>
+                        <button type="button" wire:click.prevent="deleteProject" wire:loading.attr="disabled" wire:target="deleteProject" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                            <span wire:loading.remove wire:target="deleteProject">Delete</span>
+                            <span wire:loading wire:target="deleteProject" class="flex items-center gap-2">
+                                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                </svg>
+                                Deleting...
+                            </span>
+                        </button>
                         <button wire:click="$set('confirmingDeleteId', null)" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
                     </div>
                 </div>

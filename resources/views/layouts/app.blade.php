@@ -62,11 +62,18 @@
             });
 
             Livewire.on('backToProjects', () => {
-                window.location.href = '{{ route("dashboard.projects") }}';
+                Livewire.navigate('{{ route("dashboard.projects") }}');
             });
 
-            Livewire.on('projectDeleted', () => {
-                window.location.href = '{{ route("dashboard.projects") }}';
+            Livewire.on('projectDeleted', (data) => {
+                const targetUrl = data?.url || '{{ route("dashboard.projects") }}';
+
+                if (typeof Livewire.navigate === 'function') {
+                    Livewire.navigate(targetUrl);
+                    return;
+                }
+
+                window.location.href = targetUrl;
             });
         });
     </script>

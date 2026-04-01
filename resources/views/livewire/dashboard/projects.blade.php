@@ -178,7 +178,7 @@
         <!-- Projects Grid -->
         <div class="dash-grid relative z-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             @forelse($projects as $project)
-                <a wire:navigate href="/dashboard/projects/{{ $project->id }}" class="bg-white rounded-xl shadow hover:shadow-2xl hover:scale-105 transition p-6 cursor-pointer block border border-gray-200 hover:border-blue-500/50">
+                <a wire:navigate href="{{ route('dashboard.projects.detail', array_merge(['id' => $project->id, 'return_to' => 'dashboard.projects'], request()->only(['search', 'filterStatus', 'filterFreelance', 'filterCustomer', 'page']))) }}" class="bg-white rounded-xl shadow hover:shadow-2xl hover:scale-105 transition p-6 cursor-pointer block border border-gray-200 hover:border-blue-500/50">
                     <!-- Project Status Badge -->
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex-1">
@@ -404,22 +404,26 @@
                         <div>
                             <label class="block text-sm font-semibold text-gray-900 mb-2">Customers (Optional)</label>
                             <div class="flex gap-2 mb-3">
-                                <input type="text" wire:model.defer="customerSearchQuery" placeholder="Search by email or name..." class="flex-1 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm" />
-                                <button type="button" wire:click="searchCustomers" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition">Search</button>
+                                <input type="text" wire:model.live.debounce.300ms="customerSearchInput" wire:keydown.enter.prevent="searchCustomers" placeholder="Search by email or name..." class="flex-1 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm" />
+                                <button type="button" wire:click="searchCustomers" @disabled(trim((string) $customerSearchInput) === '') class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed">Search</button>
                             </div>
                             <div class="mt-2 space-y-2 border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto bg-gray-50">
-                                @forelse($customers as $customer)
-                                    <label class="flex items-center gap-3 cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition">
-                                        <input type="checkbox" wire:model.defer="selectedCustomers" value="{{ $customer->id }}" class="rounded accent-blue-600" />
-                                        <img src="{{ $customer->profile_image_url }}" alt="{{ $customer->name }}" class="w-8 h-8 rounded-full border border-gray-300" />
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-gray-900 truncate">{{ $customer->name }}</p>
-                                            <p class="text-xs text-gray-600 truncate">{{ $customer->email }}</p>
-                                        </div>
-                                    </label>
-                                @empty
-                                    <p class="text-sm text-gray-600 text-center py-6">No customers found</p>
-                                @endforelse
+                                @if(trim((string) $customerSearchQuery) === '')
+                                    <p class="text-sm text-gray-600 text-center py-6">Type a customer name or email to search</p>
+                                @else
+                                    @forelse($customers as $customer)
+                                        <label class="flex items-center gap-3 cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition">
+                                            <input type="checkbox" wire:model.defer="selectedCustomers" value="{{ $customer->id }}" class="rounded accent-blue-600" />
+                                            <img src="{{ $customer->profile_image_url }}" alt="{{ $customer->name }}" class="w-8 h-8 rounded-full border border-gray-300" />
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 truncate">{{ $customer->name }}</p>
+                                                <p class="text-xs text-gray-600 truncate">{{ $customer->email }}</p>
+                                            </div>
+                                        </label>
+                                    @empty
+                                        <p class="text-sm text-gray-600 text-center py-6">No customers found</p>
+                                    @endforelse
+                                @endif
                             </div>
                             @error('selectedCustomers') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>

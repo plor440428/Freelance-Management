@@ -33,6 +33,7 @@ class Projects extends Component
     public $installmentCount = 1;
     public $dueDayOfMonth = 20;
     public $selectedCustomers = [];
+    public $customerSearchInput = '';
     public $customerSearchQuery = '';
 
     protected $queryString = ['search', 'filterStatus', 'filterFreelance', 'filterCustomer'];
@@ -91,7 +92,7 @@ class Projects extends Component
 
     public function searchCustomers()
     {
-        // Just trigger re-render with current search query
+        $this->customerSearchQuery = trim((string) $this->customerSearchInput);
     }
 
     protected function rules()
@@ -168,6 +169,8 @@ class Projects extends Component
         $this->installmentCount = 1;
         $this->dueDayOfMonth = 20;
         $this->selectedCustomers = [];
+        $this->customerSearchInput = '';
+        $this->customerSearchQuery = '';
     }
 
     public function render()
@@ -231,12 +234,12 @@ class Projects extends Component
 
         return view('livewire.dashboard.projects', [
             'projects' => $projects,
-            'customers' => $allCustomers->when($this->customerSearchQuery, function($collection) {
-                return $collection->filter(function($customer) {
-                    return stripos($customer->email, $this->customerSearchQuery) !== false || 
-                           stripos($customer->name, $this->customerSearchQuery) !== false;
-                });
-            }),
+            'customers' => trim((string) $this->customerSearchQuery) === ''
+                ? collect()
+                : $allCustomers->filter(function ($customer) {
+                    return stripos($customer->email, $this->customerSearchQuery) !== false
+                        || stripos($customer->name, $this->customerSearchQuery) !== false;
+                }),
             'freelancers' => $allFreelancers,
             'filteredFreelancers' => $freelancers,
             'filteredCustomers' => $customers,

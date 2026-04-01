@@ -8,14 +8,22 @@ class Container extends Component
 {
     public $active = 'home';
 
-    protected $listeners = ['backToProjects' => 'goToProjects'];
-
     public function mount()
     {
-        $path = request()->path();
-        if (str_contains($path, 'projects')) {
-            $this->active = 'projects';
-        }
+        $path = trim((string) request()->path(), '/');
+
+        $sectionMap = [
+            'dashboard' => 'home',
+            'dashboard/home' => 'home',
+            'dashboard/projects' => 'projects',
+            'dashboard/tasks' => 'tasks',
+            'dashboard/account' => 'account',
+            'dashboard/approve' => 'approve',
+            'dashboard/settings' => 'settings',
+        ];
+        
+
+        $this->active = $sectionMap[$path] ?? 'home';
 
         if (session()->has('notify_message')) {
             $this->dispatch('notify',
@@ -28,11 +36,6 @@ class Container extends Component
     public function setActive($name)
     {
         $this->active = $name;
-    }
-
-    public function goToProjects()
-    {
-        $this->active = 'projects';
     }
 
     public function canSeeMenu($menuName)
@@ -49,6 +52,35 @@ class Container extends Component
         ];
 
         return in_array($userRole, $menuPermissions[$menuName] ?? []);
+    }
+
+    public function activeRouteName(): string
+    {
+        $routeMap = [
+            'home' => 'dashboard.home',
+            'projects' => 'dashboard.projects',
+            'tasks' => 'dashboard.tasks',
+            'account' => 'dashboard.account',
+            'approve' => 'dashboard.approve',
+            'settings' => 'dashboard.settings',
+        ];
+
+        return $routeMap[$this->active] ?? 'dashboard.home';
+    }
+
+    public function activeRouteParams(): array
+    {
+        if ($this->active !== 'projects') {
+            return [];
+        }
+
+        return request()->only([
+            'search',
+            'filterStatus',
+            'filterFreelance',
+            'filterCustomer',
+            'page',
+        ]);
     }
 
     public function render()

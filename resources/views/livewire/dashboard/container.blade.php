@@ -61,7 +61,7 @@
                 <ul class="space-y-2">
                     @if($this->canSeeMenu('home'))
                     <li>
-                        <button wire:click="setActive('home')" class="cursor-pointer w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'home') bg-slate-800 @endif">
+                        <a wire:navigate href="{{ route('dashboard.home') }}" class="cursor-pointer w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'home') bg-slate-800 @endif">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                 fill="currentColor" viewBox="0 0 24 24">
                                 <!--Boxicons v3.0.6 https://boxicons.com | License  https://docs.boxicons.com/free-->
@@ -69,39 +69,39 @@
                                 <path d="M19 18c.55 0 1-.45 1-1V5c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v12c0 .55.45 1 1 1zM16 6h2v10h-2zM11 18c.55 0 1-.45 1-1v-7c0-.55-.45-1-1-1H7c-.55 0-1 .45-1 1v7c0 .55.45 1 1 1zm-3-7h2v5H8z"></path>
                             </svg>
                             <span>Dashboard</span>
-                        </button>
+                        </a>
                     </li>
                     @endif
 
                     @if($this->canSeeMenu('projects'))
                     <li>
-                        <button wire:click="setActive('projects')" class="cursor-pointer w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'projects') bg-slate-800 @endif">
+                        <a wire:navigate href="{{ route('dashboard.projects') }}" class="cursor-pointer w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'projects') bg-slate-800 @endif">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                 fill="currentColor" viewBox="0 0 24 24">
                                 <!--Boxicons v3.0.6 https://boxicons.com | License  https://docs.boxicons.com/free-->
                                 <path d="m20,4h-8.59l-1.41-1.41c-.38-.38-.88-.59-1.41-.59h-4.59c-1.1,0-2,.9-2,2v14c0,1.1.9,2,2,2h16c1.1,0,2-.9,2-2V6c0-1.1-.9-2-2-2Zm0,14H4s0-12,0-12h16v12Z"></path>
                             </svg>
                             <span>Projects</span>
-                        </button>
+                        </a>
                     </li>
                     @endif
 
                     @if($this->canSeeMenu('tasks'))
                     <li>
-                        <button wire:click="setActive('tasks')" class="cursor-pointer w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'tasks') bg-slate-800 @endif">
+                        <a wire:navigate href="{{ route('dashboard.tasks') }}" class="cursor-pointer w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'tasks') bg-slate-800 @endif">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                 fill="currentColor" viewBox="0 0 24 24">
                                 <!--Boxicons v3.0.6 https://boxicons.com | License  https://docs.boxicons.com/free-->
                                 <path d="m4 8.09-1.29-1.3-1.42 1.42L4 10.91l4.71-4.7-1.42-1.42zM4 16.09l-1.29-1.3-1.42 1.42L4 18.91l4.71-4.7-1.42-1.42zM10 15h12v2H10zM10 7h12v2H10z"></path>
                             </svg>
                             <span>Tasks</span>
-                        </button>
+                        </a>
                     </li>
                     @endif
 
                     @if($this->canSeeMenu('account'))
                     <li>
-                        <button wire:click="setActive('account')" class="cursor-pointer w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'account') bg-slate-800 @endif">
+                        <a wire:navigate href="{{ route('dashboard.account') }}" class="cursor-pointer w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'account') bg-slate-800 @endif">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                 fill="currentColor" viewBox="0 0 24 24">
                                 <!--Boxicons v3.0.6 https://boxicons.com | License  https://docs.boxicons.com/free-->
@@ -109,26 +109,26 @@
                                 <path d="m19,3H5c-1.1,0-2,.9-2,2v14c0,1.1.9,2,2,2h14c1.1,0,2-.9,2-2V5c0-1.1-.9-2-2-2Zm-10.82,16c.41-1.16,1.51-2,2.82-2h2c1.3,0,2.4.84,2.82,2h-7.63Zm9.71,0c-.46-2.28-2.48-4-4.9-4h-2c-2.41,0-4.43,1.72-4.9,4h-1.1V5h14v14s-1.1,0-1.1,0Z"></path>
                             </svg>
                             <span>Account</span>
-                        </button>
+                        </a>
                     </li>
                     @endif
 
                     @if($this->canSeeMenu('approve'))
                     <li>
-                        <button wire:click="setActive('approve')" class="cursor-pointer w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'approve') bg-slate-800 @endif">
+                        <a wire:navigate href="{{ route('dashboard.approve') }}" class="cursor-pointer w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'approve') bg-slate-800 @endif">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                 fill="currentColor" viewBox="0 0 24 24">
                                 <!--Boxicons v3.0.6 https://boxicons.com | License  https://docs.boxicons.com/free-->
                                 <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
                             </svg>
                             <span>Approve</span>
-                        </button>
+                        </a>
                     </li>
                     @endif
 
                     @if($this->canSeeMenu('settings'))
                     <li>
-                        <button wire:click="setActive('settings')" class="cursor-pointer w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'settings') bg-slate-800 @endif">
+                        <a wire:navigate href="{{ route('dashboard.settings') }}" class="cursor-pointer w-full text-left flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 @if($active === 'settings') bg-slate-800 @endif">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                 fill="currentColor" viewBox="0 0 24 24">
                                 <!--Boxicons v3.0.6 https://boxicons.com | License  https://docs.boxicons.com/free-->
@@ -136,7 +136,7 @@
                                 <path d="m20.42 13.4-.51-.29c.05-.37.08-.74.08-1.11s-.03-.74-.08-1.11l.51-.29c.96-.55 1.28-1.78.73-2.73l-1-1.73a2.006 2.006 0 0 0-2.73-.73l-.53.31c-.58-.46-1.22-.83-1.9-1.11v-.6c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v.6c-.67.28-1.31.66-1.9 1.11l-.53-.31c-.96-.55-2.18-.22-2.73.73l-1 1.73c-.55.96-.22 2.18.73 2.73l.51.29c-.05.37-.08.74-.08 1.11s.03.74.08 1.11l-.51.29c-.96.55-1.28 1.78-.73 2.73l1 1.73c.55.95 1.77 1.28 2.73.73l.53-.31c.58.46 1.22.83 1.9 1.11v.6c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2v-.6a8.7 8.7 0 0 0 1.9-1.11l.53.31c.95.55 2.18.22 2.73-.73l1-1.73c.55-.96.22-2.18-.73-2.73m-2.59-2.78c.11.45.17.92.17 1.38s-.06.92-.17 1.38a1 1 0 0 0 .47 1.11l1.12.65-1 1.73-1.14-.66c-.38-.22-.87-.16-1.19.14-.68.65-1.51 1.13-2.38 1.4-.42.13-.71.52-.71.96v1.3h-2v-1.3c0-.44-.29-.83-.71-.96-.88-.27-1.7-.75-2.38-1.4a1.01 1.01 0 0 0-1.19-.15l-1.14.66-1-1.73 1.12-.65c.39-.22.58-.68.47-1.11-.11-.45-.17-.92-.17-1.38s.06-.93.17-1.38A1 1 0 0 0 5.7 9.5l-1.12-.65 1-1.73 1.14.66c.38.22.87.16 1.19-.14.68-.65 1.51-1.13 2.38-1.4.42-.13.71-.52.71-.96v-1.3h2v1.3c0 .44.29.83.71.96.88.27 1.7.75 2.38 1.4.32.31.81.36 1.19.14l1.14-.66 1 1.73-1.12.65c-.39.22-.58.68-.47 1.11Z"></path>
                             </svg>
                             <span>Settings</span>
-                        </button>
+                        </a>
                     </li>
                     @endif
                 </ul>
@@ -154,7 +154,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                         </button>
-                        <h2 class="text-lg font-semibold capitalize">{{$active}}</h2>
+                        <a wire:navigate href="{{ route($this->activeRouteName(), $this->activeRouteParams()) }}" class="text-lg font-semibold capitalize text-slate-900 hover:text-sky-700 transition">{{$active}}</a>
                     </div>
 
                     <div class="flex items-center gap-4">
