@@ -974,6 +974,8 @@ class ProjectDetail extends Component
             return;
         }
 
+        $this->confirmingDeleteTaskId = null;
+
         // Initialize tasks array for the new task so Livewire bindings work
         $this->tasks = [];
         $this->tasks[0] = [
@@ -1044,8 +1046,15 @@ class ProjectDetail extends Component
 
     public function editTask($taskId)
     {
+        if (!$this->canManageProject()) {
+            $this->dispatch('notify', message: 'You do not have permission to edit tasks.', type: 'warning');
+            return;
+        }
+
+        $this->loadProject();
         $this->editingTaskId = $taskId;
         $this->addingNewTask = false;
+        $this->confirmingDeleteTaskId = null;
 
         // Populate the tasks array with current values for editing so bindings work
         $this->tasks = [];
@@ -1146,11 +1155,20 @@ class ProjectDetail extends Component
     public function cancelEdit()
     {
         $this->editingTaskId = null;
+        $this->tasks = [];
         $this->loadProject();
     }
 
     public function confirmDeleteTask($taskId)
     {
+        if (!$this->canManageProject()) {
+            $this->dispatch('notify', message: 'You do not have permission to delete tasks.', type: 'warning');
+            return;
+        }
+
+        $this->editingTaskId = null;
+        $this->addingNewTask = false;
+        $this->tasks = [];
         $this->confirmingDeleteTaskId = $taskId;
     }
 
@@ -1168,6 +1186,9 @@ class ProjectDetail extends Component
 
             $this->dispatch('notify', message: 'Task deleted successfully!', type: 'success');
             $this->confirmingDeleteTaskId = null;
+            $this->editingTaskId = null;
+            $this->addingNewTask = false;
+            $this->tasks = [];
             $this->loadProject();
         } catch (\Exception $e) {
             $this->dispatch('notify', message: 'Failed to delete task. ' . $e->getMessage(), type: 'error');
@@ -1384,8 +1405,15 @@ class ProjectDetail extends Component
                 ->get();
         }
 
-        // Get task assignees from project managers only
-        $taskAssignees = $this->project->managers;
+        // Allow tasks to be assigned to the project owner, assigned freelance, and team members.
+        $taskAssignees = collect([
+            $this->project->creator,
+            $this->project->freelance,
+        ])
+            ->filter(fn ($assignee) => $assignee && $assignee->role !== 'customer')
+            ->merge($this->project->managers)
+            ->unique('id')
+            ->values();
 
         $myProjectPayments = $this->project->paymentProofs()
             ->with(['user', 'reviewer'])

@@ -21,19 +21,19 @@
     <!-- Filter Tabs -->
     <div>
         <div class="bg-white/80 rounded-2xl border border-slate-200/70 p-2 flex flex-wrap gap-2">
-            <button wire:click="$set('filterStatus', 'pending')"
+            <button type="button" wire:click.prevent="$set('filterStatus', 'pending')"
                     class="px-4 py-2 rounded-full text-sm font-semibold transition {{ $filterStatus === 'pending' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                 Pending
             </button>
-            <button wire:click="$set('filterStatus', 'approved')"
+            <button type="button" wire:click.prevent="$set('filterStatus', 'approved')"
                     class="px-4 py-2 rounded-full text-sm font-semibold transition {{ $filterStatus === 'approved' ? 'bg-green-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                 Approved
             </button>
-            <button wire:click="$set('filterStatus', 'rejected')"
+            <button type="button" wire:click.prevent="$set('filterStatus', 'rejected')"
                     class="px-4 py-2 rounded-full text-sm font-semibold transition {{ $filterStatus === 'rejected' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                 Rejected
             </button>
-            <button wire:click="$set('filterStatus', 'all')"
+            <button type="button" wire:click.prevent="$set('filterStatus', 'all')"
                     class="px-4 py-2 rounded-full text-sm font-semibold transition {{ $filterStatus === 'all' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                 All
             </button>
@@ -79,7 +79,7 @@
                             @php
                                 $proof = $user->paymentProofs->first();
                             @endphp
-                            <tr class="hover:bg-slate-50">
+                            <tr wire:key="pending-user-{{ $user->id }}" class="hover:bg-slate-50">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center">
                                         @if($user->profile_image_path)
@@ -131,7 +131,9 @@
                                     {{ $user->created_at->diffForHumans() }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    <button wire:click="viewUser({{ $user->id }})"
+                                        <button type="button" wire:click.prevent="viewUser({{ $user->id }})"
+                                            wire:loading.attr="disabled"
+                                            wire:target="viewUser"
                                             class="text-blue-600 hover:text-blue-800 font-medium text-sm">
                                         Review
                                     </button>
@@ -366,7 +368,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         @foreach($allPending as $user)
-                            <tr class="hover:bg-slate-50">
+                            <tr wire:key="all-pending-user-{{ $user->id }}" class="hover:bg-slate-50">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center">
                                         @if($user->profile_image_path)
@@ -396,7 +398,9 @@
                                     {{ $user->created_at->diffForHumans() }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    <button wire:click="viewUser({{ $user->id }})"
+                                        <button type="button" wire:click.prevent="viewUser({{ $user->id }})"
+                                            wire:loading.attr="disabled"
+                                            wire:target="viewUser"
                                             class="text-blue-600 hover:text-blue-800 font-medium text-sm">
                                         Review
                                     </button>
@@ -663,12 +667,12 @@
 
                         <!-- Action Buttons -->
                         <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 pb-4 sticky bottom-0 bg-white border-t border-slate-200 -mx-6 px-6 -mb-5">
-                            <button wire:click="closeUserDetail"
+                            <button type="button" wire:click.prevent="closeUserDetail"
                                     class="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-medium transition-colors">
                                 ยกเลิก
                             </button>
 
-                            <button wire:click="rejectUser"
+                            <button type="button" wire:click.prevent="rejectUser"
                                     wire:loading.attr="disabled"
                                     wire:loading.class="opacity-60 cursor-not-allowed"
                                     wire:target="rejectUser"
@@ -680,7 +684,7 @@
                                 <span wire:loading wire:target="rejectUser">กำลังบันทึก...</span>
                             </button>
 
-                            <button wire:click="approveUser"
+                                <button type="button" wire:click.prevent="approveUser"
                                     wire:loading.attr="disabled"
                                     wire:loading.class="opacity-60 cursor-not-allowed"
                                     wire:target="approveUser"

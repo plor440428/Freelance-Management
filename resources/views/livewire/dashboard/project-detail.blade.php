@@ -273,7 +273,7 @@
                 <div class="divide-y max-h-[600px] overflow-y-auto">
                     <!-- New Task Form -->
                     @if($addingNewTask)
-                        <div class="p-6 bg-gradient-to-r from-blue-50 to-white space-y-4 border-b border-gray-100">
+                        <div wire:key="task-create-form" class="p-6 bg-gradient-to-r from-blue-50 to-white space-y-4 border-b border-gray-100">
                             <div>
                                 <label class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-2 block">Task Title</label>
                                 <input type="text" wire:model.defer="tasks.0.title" placeholder="Enter task title..." class="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
@@ -314,7 +314,7 @@
                                 </div>
                             </div>
                             <div class="flex gap-3 pt-2">
-                                <button wire:click="saveNewTask(0)" wire:loading.attr="disabled" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
+                                <button type="button" wire:click.prevent="saveNewTask(0)" wire:loading.attr="disabled" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
                                     <span wire:loading.remove wire:target="saveNewTask">Save Task</span>
                                     <span wire:loading wire:target="saveNewTask" class="flex items-center gap-2">
                                         <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -323,7 +323,7 @@
                                         </svg>
                                     </span>
                                 </button>
-                                <button wire:click="cancelNewTask" class="px-5 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+                                <button type="button" wire:click.prevent="cancelNewTask" class="px-5 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
                             </div>
                         </div>
                     @endif
@@ -332,7 +332,7 @@
                     @forelse($project->tasks as $task)
                         @if($editingTaskId === $task->id)
                             <!-- Edit Mode -->
-                            <div class="p-6 bg-gradient-to-r from-blue-50 to-white space-y-4 border-b border-gray-100">
+                            <div wire:key="task-edit-{{ $task->id }}" class="p-6 bg-gradient-to-r from-blue-50 to-white space-y-4 border-b border-gray-100">
                                 <div>
                                     <label class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-2 block">Task Title</label>
                                     <input type="text" wire:model.defer="tasks.{{ $loop->index }}.title" value="{{ $task->title }}" placeholder="Enter task title..." class="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
@@ -373,7 +373,7 @@
                                     </div>
                                 </div>
                                 <div class="flex gap-3 pt-2">
-                                    <button wire:click="saveTask({{ $task->id }})" wire:loading.attr="disabled" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
+                                    <button type="button" wire:click.prevent="saveTask({{ $task->id }})" wire:loading.attr="disabled" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
                                         <span wire:loading.remove wire:target="saveTask({{ $task->id }})">Save</span>
                                         <span wire:loading wire:target="saveTask({{ $task->id }})" class="flex items-center gap-2">
                                             <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -382,12 +382,12 @@
                                             </svg>
                                         </span>
                                     </button>
-                                    <button wire:click="cancelEdit" class="px-5 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+                                    <button type="button" wire:click.prevent="cancelEdit" class="px-5 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
                                 </div>
                             </div>
                         @else
                             <!-- View Mode -->
-                            <div class="p-5 hover:bg-blue-50 transition group border-b border-gray-100 last:border-b-0">
+                            <div wire:key="task-view-{{ $task->id }}" class="p-5 hover:bg-blue-50 transition group border-b border-gray-100 last:border-b-0">
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="flex-1 min-w-0">
                                         <h5 class="font-semibold text-sm text-gray-900 mb-2">{{ $task->title }}</h5>
@@ -425,12 +425,12 @@
                                     </div>
                                     @if(auth()->user()->role !== 'customer')
                                         <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                                            <button wire:click="editTask({{ $task->id }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition">
+                                            <button type="button" wire:click.prevent="editTask({{ $task->id }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                 </svg>
                                             </button>
-                                            <button wire:click="confirmDeleteTask({{ $task->id }})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition">
+                                            <button type="button" wire:click.prevent="confirmDeleteTask({{ $task->id }})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
@@ -1258,7 +1258,7 @@
             <div class="relative z-[1001] w-full max-w-md max-h-[90vh] bg-white shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
                     <h3 class="text-lg font-black text-gray-900">Delete Task</h3>
-                    <button wire:click="$set('confirmingDeleteTaskId', null)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
+                    <button type="button" wire:click.prevent="$set('confirmingDeleteTaskId', null)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
                 <div class="flex-1 overflow-y-auto p-5">
                     <div class="flex items-center gap-3 mb-4">
@@ -1270,8 +1270,11 @@
                     </div>
                     <p class="text-sm font-medium text-gray-700 mb-6">Are you sure you want to delete this task? This action cannot be undone.</p>
                     <div class="flex gap-3">
-                        <button wire:click="deleteTask" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition">Delete</button>
-                        <button wire:click="$set('confirmingDeleteTaskId', null)" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+                        <button type="button" wire:click.prevent="deleteTask" wire:loading.attr="disabled" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span wire:loading.remove wire:target="deleteTask">Delete</span>
+                            <span wire:loading wire:target="deleteTask">Deleting...</span>
+                        </button>
+                        <button type="button" wire:click.prevent="$set('confirmingDeleteTaskId', null)" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
                     </div>
                 </div>
             </div>

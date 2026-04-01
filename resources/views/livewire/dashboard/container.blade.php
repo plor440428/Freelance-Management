@@ -173,7 +173,9 @@
                 <div class="dash-panel rounded-2xl p-4 h-full ">
                     @switch($active)
                     @case('home')
-                    @livewire('dashboard.home')
+                    <div wire:key="home-shell-{{ md5(request()->getQueryString() ?? '') }}">
+                        @livewire('dashboard.home', [], key('dashboard-home-'.md5(request()->getQueryString() ?? '')))
+                    </div>
                     @break
                     @case('projects')
                     @if($projectDetailId)
@@ -187,16 +189,24 @@
                     @endif
                     @break
                     @case('tasks')
-                    @livewire('dashboard.tasks')
+                    <div wire:key="tasks-shell-{{ md5(request()->getQueryString() ?? '') }}">
+                        @livewire('dashboard.tasks', [], key('dashboard-tasks-'.md5(request()->getQueryString() ?? '')))
+                    </div>
                     @break
                     @case('account')
-                    @livewire('dashboard.account')
+                    <div wire:key="account-shell-{{ md5(request()->getQueryString() ?? '') }}">
+                        @livewire('dashboard.account', [], key('dashboard-account-'.md5(request()->getQueryString() ?? '')))
+                    </div>
                     @break
                     @case('approve')
-                    @livewire('dashboard.approve')
+                    <div wire:key="approve-shell-{{ md5(request()->fullUrl() ?? request()->path()) }}">
+                        @livewire('dashboard.approve', [], key('dashboard-approve-'.md5(request()->fullUrl() ?? request()->path())))
+                    </div>
                     @break
                     @case('settings')
-                    @livewire('dashboard.settings')
+                    <div wire:key="settings-shell-{{ md5(request()->getQueryString() ?? '') }}">
+                        @livewire('dashboard.settings', [], key('dashboard-settings-'.md5(request()->getQueryString() ?? '')))
+                    </div>
                     @break
                     @default
                     <div class="text-center py-8 text-slate-500">Unknown section</div>
