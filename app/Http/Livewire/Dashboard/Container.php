@@ -10,6 +10,21 @@ class Container extends Component
 
     protected $listeners = ['backToProjects' => 'goToProjects'];
 
+    public function mount()
+    {
+        $path = request()->path();
+        if (str_contains($path, 'projects')) {
+            $this->active = 'projects';
+        }
+
+        if (session()->has('notify_message')) {
+            $this->dispatch('notify',
+                message: session()->pull('notify_message'),
+                type: session()->pull('notify_type', 'success')
+            );
+        }
+    }
+
     public function setActive($name)
     {
         $this->active = $name;

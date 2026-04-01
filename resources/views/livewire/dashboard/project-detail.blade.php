@@ -3,7 +3,7 @@
     <div class="bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-xl shadow-sm p-7 mb-8 border border-gray-100">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-5">
-                <a href="{{ route('dashboard.projects') }}" class="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition inline-flex">
+                <a wire:navigate href="{{ route('dashboard.projects') }}" class="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition inline-flex">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -50,7 +50,7 @@
                         </svg>
                     </span>
                 </button>
-                @if(auth()->user()->role === 'admin' || $project->created_by === auth()->id())
+                @if(auth()->user()->role === 'admin' || $project->created_by === auth()->id() || $project->freelance_id === auth()->id())
                     <button wire:click="confirmDelete" wire:loading.attr="disabled" class="px-4 py-2 border-2 border-red-300 text-red-600 rounded-lg hover:bg-red-50 text-sm font-semibold disabled:opacity-50 transition flex items-center gap-2">
                         <span wire:loading.remove wire:target="confirmDelete">Delete</span>
                         <span wire:loading wire:target="confirmDelete" class="flex items-center gap-2">
@@ -78,6 +78,95 @@
         <div class="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4">
             <div class="text-sm font-semibold mb-1">เหตุผลการยกเลิกโปรเจกต์</div>
             <div class="text-sm">{{ $project->cancel_reason }}</div>
+        </div>
+    @endif
+
+    @if($project->total_price !== null)
+        <div class="mb-6 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-1 h-5 bg-gradient-to-b from-emerald-500 to-emerald-300 rounded-full"></div>
+                <h4 class="font-black text-gray-900">Project Pricing</h4>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Total Price</p>
+                    <p class="text-lg font-black text-gray-900 mt-1">฿{{ number_format((float) $project->total_price, 2) }}</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Installments</p>
+                    <p class="text-lg font-black text-gray-900 mt-1">{{ $project->installment_count }} งวด</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Due Day</p>
+                    <p class="text-lg font-black text-gray-900 mt-1">ทุกวันที่ {{ $project->due_day_of_month }}</p>
+                </div>
+                <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-blue-600">Payment Progress</p>
+                    <p class="text-sm font-black text-blue-800 mt-1">จ่ายแล้ว {{ $pricingProgress['paid_rounds'] }}/{{ $pricingProgress['planned_rounds'] }} งวด</p>
+                    <p class="text-sm font-black text-indigo-800">คงเหลือ ฿{{ number_format((float) $pricingProgress['remaining_amount'], 2) }}</p>
+                </div>
+            </div>
+
+            <div class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-emerald-800 mb-2">
+                    <span>จ่ายแล้ว {{ $pricingProgress['paid_rounds'] }} งวด</span>
+                    <span>เหลือ {{ $pricingProgress['remaining_rounds'] }} งวด</span>
+                    <span>ตอนนี้ควรจ่ายแล้ว {{ $pricingProgress['due_now_rounds'] }} งวด</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-emerald-100 overflow-hidden">
+                    <div class="h-full bg-emerald-500 rounded-full" style="width: {{ $pricingProgress['paid_percent'] }}%"></div>
+                </div>
+                <p class="text-[11px] text-emerald-700 mt-2">ความคืบหน้าการจ่าย {{ $pricingProgress['paid_percent'] }}%</p>
+            </div>
+
+            <div class="mt-4 rounded-lg border border-gray-200 overflow-hidden">
+                <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                    <p class="text-xs font-bold uppercase tracking-widest text-gray-700">Installment Schedule</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-white text-gray-600 text-xs uppercase tracking-widest">
+                            <tr>
+                                <th class="px-4 py-2 text-left">งวด</th>
+                                <th class="px-4 py-2 text-left">ครบกำหนด</th>
+                                <th class="px-4 py-2 text-left">ยอดชำระ</th>
+                                <th class="px-4 py-2 text-left">สถานะ</th>
+                                <th class="px-4 py-2 text-left">เหตุผล/หมายเหตุ</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach($installmentSchedule as $schedule)
+                                <tr class="{{ $schedule['status'] === 'approved' ? 'bg-emerald-50/40' : ($schedule['is_due'] ? 'bg-amber-50/30' : 'bg-white') }}">
+                                    <td class="px-4 py-2 font-semibold text-gray-900">{{ $schedule['round'] }}</td>
+                                    <td class="px-4 py-2 text-gray-700">{{ $schedule['due_date']->format('d/m/Y') }}</td>
+                                    <td class="px-4 py-2 text-gray-900 font-semibold">฿{{ number_format((float) $schedule['amount'], 2) }}</td>
+                                    <td class="px-4 py-2">
+                                        @if($schedule['status'] === 'approved')
+                                            <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700">Approved</span>
+                                        @elseif($schedule['status'] === 'pending')
+                                            <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-700">Pending</span>
+                                        @elseif($schedule['status'] === 'rejected')
+                                            <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-red-100 text-red-700">Rejected</span>
+                                        @else
+                                            <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-700">Unpaid</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2 text-gray-600 text-xs">
+                                        @if($schedule['payment'] && $schedule['payment']->review_note)
+                                            {{ $schedule['payment']->review_note }}
+                                        @elseif($schedule['payment'] && $schedule['payment']->note)
+                                            {{ $schedule['payment']->note }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     @endif
 
@@ -585,6 +674,23 @@
                             เมื่อส่งสลิปแล้ว รายการจะรอให้ฟรีแลนซ์ตรวจสอบยอดก่อนเปลี่ยนสถานะเป็นอนุมัติหรือไม่อนุมัติ
                         </div>
 
+                        @if($project->total_price !== null)
+                            @if(is_array($nextInstallmentForCustomer) && !isset($nextInstallmentForCustomer['error']))
+                                <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+                                    <p class="text-xs font-bold uppercase tracking-widest text-emerald-700">งวดที่ต้องจ่ายตอนนี้</p>
+                                    <div class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-emerald-900">
+                                        <span class="font-semibold">งวด {{ $nextInstallmentForCustomer['round'] }}</span>
+                                        <span>ครบกำหนด {{ $nextInstallmentForCustomer['due_date']->format('d/m/Y') }}</span>
+                                        <span class="font-black">฿{{ number_format((float) $nextInstallmentForCustomer['amount'], 2) }}</span>
+                                    </div>
+                                </div>
+                            @elseif(is_array($nextInstallmentForCustomer) && isset($nextInstallmentForCustomer['error']))
+                                <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+                                    {{ $nextInstallmentForCustomer['error'] }}
+                                </div>
+                            @endif
+                        @endif
+
                         <form wire:submit.prevent="submitProjectPayment" class="space-y-3 mb-5">
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Upload Slip</label>
@@ -601,8 +707,18 @@
 
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Amount</label>
-                                <input type="number" step="0.01" min="0.01" wire:model.defer="projectPaymentAmount" class="w-full border border-gray-200 px-3 py-2 rounded-lg text-sm" placeholder="0.00" />
+                                @if($project->total_price !== null && is_array($nextInstallmentForCustomer) && !isset($nextInstallmentForCustomer['error']))
+                                    <input type="text" value="฿{{ number_format((float) $nextInstallmentForCustomer['amount'], 2) }} (งวด {{ $nextInstallmentForCustomer['round'] }})" class="w-full border border-emerald-200 bg-emerald-50 px-3 py-2 rounded-lg text-sm font-semibold text-emerald-800" readonly />
+                                @else
+                                    <input type="number" step="0.01" min="0.01" wire:model.defer="projectPaymentAmount" class="w-full border border-gray-200 px-3 py-2 rounded-lg text-sm" placeholder="0.00" />
+                                @endif
                                 @error('projectPaymentAmount') <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Transfer Date & Time</label>
+                                <input type="datetime-local" wire:model.defer="projectPaymentTransferAt" class="w-full border border-gray-200 px-3 py-2 rounded-lg text-sm" />
+                                @error('projectPaymentTransferAt') <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p> @enderror
                             </div>
 
                             <div>
@@ -611,7 +727,7 @@
                                 @error('projectPaymentNote') <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p> @enderror
                             </div>
 
-                            <button type="submit" wire:loading.attr="disabled" class="w-full px-4 py-2.5 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 disabled:opacity-50 transition">
+                            <button type="submit" wire:loading.attr="disabled" @disabled($project->total_price !== null && is_array($nextInstallmentForCustomer) && isset($nextInstallmentForCustomer['error'])) class="w-full px-4 py-2.5 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 disabled:opacity-50 transition">
                                 <span wire:loading.remove wire:target="submitProjectPayment">ส่งสลิปชำระเงิน</span>
                                 <span wire:loading wire:target="submitProjectPayment">กำลังส่ง...</span>
                             </button>
@@ -629,6 +745,12 @@
                                         </div>
                                     </div>
                                     <p class="text-[11px] text-gray-500">{{ $payment->created_at->format('d/m/Y H:i') }}</p>
+                                    @if($payment->transfer_at)
+                                        <p class="text-[11px] text-gray-600 mt-1">โอนเมื่อ {{ $payment->transfer_at->format('d/m/Y H:i') }}</p>
+                                    @endif
+                                    @if($payment->installment_round)
+                                        <p class="text-[11px] font-semibold text-indigo-700 mt-1">งวดที่ {{ $payment->installment_round }}</p>
+                                    @endif
                                     <p class="text-xs font-semibold text-gray-700 mt-1">฿{{ number_format($payment->amount, 2) }}</p>
                                     @if($payment->reviewed_amount)
                                         <p class="text-xs text-gray-600 mt-1">ยอดที่ตรวจสอบ: ฿{{ number_format($payment->reviewed_amount, 2) }}</p>
@@ -668,6 +790,12 @@
                                         </div>
                                     </div>
                                     <p class="text-[11px] text-gray-500">{{ $payment->created_at->format('d/m/Y H:i') }}</p>
+                                    @if($payment->transfer_at)
+                                        <p class="text-[11px] text-gray-600 mt-1">โอนเมื่อ {{ $payment->transfer_at->format('d/m/Y H:i') }}</p>
+                                    @endif
+                                    @if($payment->installment_round)
+                                        <p class="text-[11px] font-semibold text-indigo-700 mt-1">งวดที่ {{ $payment->installment_round }}</p>
+                                    @endif
                                     <p class="text-xs font-semibold text-gray-700 mt-1">฿{{ number_format($payment->amount, 2) }}</p>
                                     @if($payment->reviewed_amount)
                                         <p class="text-xs text-gray-600 mt-1">ยอดที่ตรวจสอบ: ฿{{ number_format($payment->reviewed_amount, 2) }}</p>
@@ -851,6 +979,24 @@
                                 <option value="cancelled">Cancelled</option>
                             </select>
                             @error('status') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Total Price</label>
+                                <input type="number" min="0.01" step="0.01" wire:model.defer="totalPrice" class="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" placeholder="0.00" />
+                                @error('totalPrice') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Installments</label>
+                                <input type="number" min="1" max="120" wire:model.defer="installmentCount" class="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
+                                @error('installmentCount') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Due Day</label>
+                                <input type="number" min="1" max="28" wire:model.defer="dueDayOfMonth" class="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
+                                @error('dueDayOfMonth') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
+                            </div>
                         </div>
 
                         @if($status === 'cancelled')
@@ -1057,24 +1203,28 @@
 
     <!-- Delete Project Confirmation -->
     @if($confirmingDeleteId)
-        <div class="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
-            <div class="absolute inset-0 bg-black/50 z-[999] pointer-events-auto cursor-pointer" wire:click="$set('confirmingDeleteId', null)"></div>
-            <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl border-l border-gray-100 flex flex-col h-screen max-h-screen z-[1001]">
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" wire:click="$set('confirmingDeleteId', null)"></div>
+            <div class="relative z-[1001] w-full max-w-md rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-red-50">
                     <h3 class="text-lg font-black text-gray-900">Delete Project</h3>
                     <button wire:click="$set('confirmingDeleteId', null)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
-                <div class="flex-1 overflow-y-auto p-5">
+                <div class="p-5">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
                             <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0-10a8 8 0 110 16 8 8 0 010-16z" />
                             </svg>
                         </div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-900">Delete this project?</p>
+                            <p class="text-xs text-gray-600">This action cannot be undone.</p>
+                        </div>
                     </div>
-                    <p class="text-sm font-medium text-gray-700 mb-6">Are you sure you want to delete this project? This will also delete all tasks. This action cannot be undone.</p>
+                    <p class="text-sm font-medium text-gray-700 mb-6">Are you sure you want to delete this project? This will also delete all tasks.</p>
                     <div class="flex gap-3">
-                        <button wire:click="deleteProject" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition">Delete</button>
+                        <button type="button" wire:click.prevent="deleteProject" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition">Delete</button>
                         <button wire:click="$set('confirmingDeleteId', null)" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
                     </div>
                 </div>

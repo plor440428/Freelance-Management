@@ -7,6 +7,8 @@ use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\File;
 
@@ -197,7 +199,7 @@ class Account extends Component
         $this->confirmingDeleteId = $id;
     }
 
-    public function deleteUser($id)
+    public function deleteUser($id = null)
     {
         if (!$this->isAdmin()) {
             $this->dispatch('notify', message: 'Unauthorized action.', type: 'error');
@@ -205,7 +207,15 @@ class Account extends Component
         }
 
         try {
-            $user = User::findOrFail($id);
+            $userId = $id ?? $this->confirmingDeleteId;
+
+            if (!$userId) {
+                $this->dispatch('notify', message: 'User not found for deletion.', type: 'error');
+                $this->confirmingDeleteId = null;
+                return;
+            }
+
+            $user = User::findOrFail($userId);
 
             // Prevent deleting self
             if ($user->id === Auth::id()) {
@@ -214,11 +224,40 @@ class Account extends Component
                 return;
             }
 
-            $user->delete();
+            DB::transaction(function () use ($user) {
+                // Clean up user-related uploaded files in storage and DB records.
+                $userFiles = File::where('module_name', 'user')
+                    ->where('module_id', $user->id)
+                    ->get();
+
+                foreach ($userFiles as $file) {
+                    if (!empty($file->file_path)) {
+                        Storage::disk('public')->delete($file->file_path);
+                    }
+                }
+
+                File::where('module_name', 'user')
+                    ->where('module_id', $user->id)
+                    ->delete();
+
+                if (!empty($user->profile_image_path)) {
+                    Storage::disk('public')->delete($user->profile_image_path);
+                }
+
+                foreach ($user->paymentProofs as $proof) {
+                    if (!empty($proof->proof_file)) {
+                        Storage::disk('public')->delete($proof->proof_file);
+                    }
+                }
+
+                $user->delete();
+            });
+
             $this->dispatch('notify', message: 'User deleted successfully!', type: 'success');
             $this->confirmingDeleteId = null;
+            $this->resetPage();
         } catch (\Exception $e) {
-            $this->dispatch('notify', message: 'Failed to delete user. ' . $e->getMessage(), type: 'error');
+            $this->dispatch('notify', message: 'Failed to delete user. Please try again or check related data constraints.', type: 'error');
             $this->confirmingDeleteId = null;
         }
     }

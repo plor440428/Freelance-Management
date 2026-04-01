@@ -29,6 +29,9 @@ class Projects extends Component
     public $name;
     public $description;
     public $status = 'active';
+    public $totalPrice;
+    public $installmentCount = 1;
+    public $dueDayOfMonth = 20;
     public $selectedCustomers = [];
     public $customerSearchQuery = '';
 
@@ -97,6 +100,9 @@ class Projects extends Component
             'name' => 'required|string|min:3|max:255',
             'description' => 'nullable|string',
             'status' => 'required|in:active,completed,on_hold,cancelled',
+            'totalPrice' => 'required|numeric|min:0.01',
+            'installmentCount' => 'required|integer|min:1|max:120',
+            'dueDayOfMonth' => 'required|integer|min:1|max:28',
             'selectedCustomers' => 'array',
         ];
     }
@@ -112,11 +118,20 @@ class Projects extends Component
         try {
             $this->validate();
 
+            $freelanceId = null;
+            if (Auth::user()->role === 'freelance') {
+                $freelanceId = Auth::id();
+            }
+
             $project = Project::create([
                 'name' => $this->name,
                 'description' => $this->description,
                 'status' => $this->status,
                 'created_by' => Auth::id(),
+                'freelance_id' => $freelanceId,
+                'total_price' => (float) $this->totalPrice,
+                'installment_count' => (int) $this->installmentCount,
+                'due_day_of_month' => (int) $this->dueDayOfMonth,
             ]);
 
             // Add customers
@@ -149,6 +164,9 @@ class Projects extends Component
         $this->name = null;
         $this->description = null;
         $this->status = 'active';
+        $this->totalPrice = null;
+        $this->installmentCount = 1;
+        $this->dueDayOfMonth = 20;
         $this->selectedCustomers = [];
     }
 

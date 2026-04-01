@@ -8,6 +8,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
+use Carbon\Carbon;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -40,6 +41,9 @@ class ProjectDetail extends Component
     public $name;
     public $description;
     public $status;
+    public $totalPrice;
+    public $installmentCount = 1;
+    public $dueDayOfMonth = 20;
     public $selectedCustomers = [];
     public $selectedCustomer = null;
     public $selectedFreelance = null;
@@ -56,6 +60,7 @@ class ProjectDetail extends Component
     public $uploadedFiles = [];
     public $projectPaymentSlip;
     public $projectPaymentAmount;
+    public $projectPaymentTransferAt = '';
     public $projectPaymentNote = '';
     public $paymentReviewAmounts = [];
     public $paymentReviewNotes = [];
@@ -106,6 +111,9 @@ class ProjectDetail extends Component
         $this->selectedCustomer = $this->project->customers->pluck('id')->first();
         $this->selectedTeamMembers = $this->project->managers->pluck('id')->toArray();
         $this->selectedTeamMember = $this->project->managers->pluck('id')->first();
+        $this->totalPrice = $this->project->total_price;
+        $this->installmentCount = $this->project->installment_count ?: 1;
+        $this->dueDayOfMonth = $this->project->due_day_of_month ?: 20;
         if ($this->project->customers->count() === 1) {
             $this->chatTargetCustomerId = (int) $this->project->customers->first()->id;
         } elseif ($this->chatTargetCustomerId === null) {
@@ -239,6 +247,84 @@ class ProjectDetail extends Component
         return $this->project->freelance_id === $user->id;
     }
 
+    protected function buildInstallmentSchedule($customerPayments)
+    {
+        if ($this->project->total_price === null) {
+            return collect();
+        }
+
+        $count = max((int) ($this->project->installment_count ?: 1), 1);
+        $dueDay = min(max((int) ($this->project->due_day_of_month ?: 20), 1), 28);
+        $totalSatang = (int) round((float) $this->project->total_price * 100);
+        $baseSatang = intdiv($totalSatang, $count);
+        $lastSatang = $totalSatang - ($baseSatang * ($count - 1));
+
+        $createdAt = ($this->project->created_at ?: Carbon::now())->copy()->startOfDay();
+        $firstDueDate = $createdAt->copy()->day(min($dueDay, $createdAt->daysInMonth));
+        if ($firstDueDate->lt($createdAt)) {
+            $firstDueDate->addMonthNoOverflow();
+            $firstDueDate->day(min($dueDay, $firstDueDate->daysInMonth));
+        }
+
+        $today = Carbon::now()->startOfDay();
+
+        return collect(range(1, $count))->map(function ($round) use ($customerPayments, $baseSatang, $lastSatang, $firstDueDate, $dueDay, $today) {
+            $dueDate = $firstDueDate->copy()->addMonthsNoOverflow($round - 1);
+            $dueDate->day(min($dueDay, $dueDate->daysInMonth));
+
+            $latestPayment = $customerPayments
+                ->where('installment_round', $round)
+                ->sortByDesc('created_at')
+                ->first();
+
+            return [
+                'round' => $round,
+                'amount' => ($round === (int) ($this->project->installment_count ?: 1) ? $lastSatang : $baseSatang) / 100,
+                'due_date' => $dueDate,
+                'is_due' => $dueDate->lessThanOrEqualTo($today),
+                'payment' => $latestPayment,
+                'status' => $latestPayment?->status,
+                'paid_amount' => $latestPayment ? (float) ($latestPayment->reviewed_amount ?? $latestPayment->amount ?? 0) : 0,
+            ];
+        });
+    }
+
+    protected function getCustomerNextInstallmentToPay($customerPayments, $schedule)
+    {
+        $pendingRounds = $customerPayments
+            ->where('status', 'pending')
+            ->pluck('installment_round')
+            ->filter()
+            ->unique();
+
+        if ($pendingRounds->isNotEmpty()) {
+            return ['error' => 'มีรายการชำระที่รอตรวจสอบอยู่แล้ว กรุณารอผลก่อนส่งงวดถัดไป'];
+        }
+
+        foreach ($schedule as $row) {
+            $round = (int) $row['round'];
+            $hasApproved = $customerPayments
+                ->where('installment_round', $round)
+                ->where('status', 'approved')
+                ->isNotEmpty();
+
+            if ($hasApproved) {
+                continue;
+            }
+
+            if ($row['due_date']->isFuture()) {
+                return ['error' => 'ยังไม่ถึงกำหนดการชำระงวดถัดไป'];
+            }
+
+            return [
+                'round' => $round,
+                'amount' => (float) $row['amount'],
+            ];
+        }
+
+        return ['error' => 'ชำระครบทุกงวดแล้ว'];
+    }
+
     public function submitProjectPayment()
     {
         if (!$this->canSubmitProjectPayment()) {
@@ -256,32 +342,63 @@ class ProjectDetail extends Component
 
             $this->validate([
                 'projectPaymentSlip' => 'required|file|mimes:jpeg,jpg,png,gif,pdf|max:5120',
-                'projectPaymentAmount' => 'required|numeric|min:0.01',
+                'projectPaymentTransferAt' => 'required|date',
                 'projectPaymentNote' => 'nullable|string|max:1000',
             ], [
                 'projectPaymentSlip.required' => 'Please select a payment slip file.',
-                'projectPaymentAmount.required' => 'Please enter the payment amount.',
-                'projectPaymentAmount.min' => 'Payment amount must be greater than 0.',
+                'projectPaymentTransferAt.required' => 'Please select the transfer date and time.',
+                'projectPaymentTransferAt.date' => 'Transfer date and time is invalid.',
             ]);
 
             $user = Auth::user();
+
+            $installmentRound = null;
+            $amount = $this->projectPaymentAmount;
+
+            if ($user->role === 'customer' && $this->project->total_price !== null) {
+                $customerPayments = $this->project->paymentProofs()
+                    ->where('submitted_as', 'customer')
+                    ->orderBy('created_at', 'asc')
+                    ->get();
+
+                $schedule = $this->buildInstallmentSchedule($customerPayments);
+                $nextInstallment = $this->getCustomerNextInstallmentToPay($customerPayments, $schedule);
+
+                if (isset($nextInstallment['error'])) {
+                    $this->dispatch('notify', message: $nextInstallment['error'], type: 'warning');
+                    return;
+                }
+
+                $installmentRound = (int) $nextInstallment['round'];
+                $amount = (float) $nextInstallment['amount'];
+            } else {
+                $this->validate([
+                    'projectPaymentAmount' => 'required|numeric|min:0.01',
+                ], [
+                    'projectPaymentAmount.required' => 'Please enter the payment amount.',
+                    'projectPaymentAmount.min' => 'Payment amount must be greater than 0.',
+                ]);
+            }
 
             \Log::info('Submitting project payment slip', [
                 'project_id' => $this->project->id,
                 'user_id' => $user->id,
                 'role' => $user->role,
-                'amount' => $this->projectPaymentAmount,
+                'amount' => $amount,
                 'has_file' => (bool) $this->projectPaymentSlip,
             ]);
 
             $filename = 'project_payment_' . $this->project->id . '_' . $user->id . '_' . time() . '.' . $this->projectPaymentSlip->getClientOriginalExtension();
             $path = $this->projectPaymentSlip->storeAs('project_payment_slips', $filename, 'public');
+            $transferAt = Carbon::parse($this->projectPaymentTransferAt);
 
             $payment = ProjectPaymentProof::create([
                 'project_id' => $this->project->id,
                 'user_id' => $user->id,
                 'submitted_as' => $user->role,
-                'amount' => (float) $this->projectPaymentAmount,
+                'installment_round' => $installmentRound,
+                'amount' => (float) $amount,
+                'transfer_at' => $transferAt,
                 'slip_file' => $path,
                 'note' => $this->projectPaymentNote,
                 'status' => 'pending',
@@ -289,7 +406,7 @@ class ProjectDetail extends Component
 
             $this->sendProjectPaymentEmails($payment);
 
-            $this->reset(['projectPaymentSlip', 'projectPaymentAmount', 'projectPaymentNote']);
+            $this->reset(['projectPaymentSlip', 'projectPaymentAmount', 'projectPaymentTransferAt', 'projectPaymentNote']);
             $this->dispatch('notify', message: 'Payment slip uploaded successfully!', type: 'success');
             $this->loadProject();
         } catch (ValidationException $e) {
@@ -488,6 +605,9 @@ class ProjectDetail extends Component
         $this->name = $this->project->name;
         $this->description = $this->project->description;
         $this->status = $this->project->status;
+        $this->totalPrice = $this->project->total_price;
+        $this->installmentCount = $this->project->installment_count ?: 1;
+        $this->dueDayOfMonth = $this->project->due_day_of_month ?: 20;
         $this->cancelReason = $this->project->cancel_reason ?? '';
         $this->showEditModal = true;
     }
@@ -549,6 +669,9 @@ class ProjectDetail extends Component
                 'name' => 'required|string|min:3|max:255',
                 'description' => 'nullable|string',
                 'status' => 'required|in:active,completed,on_hold,cancelled',
+                'totalPrice' => 'nullable|numeric|min:0.01',
+                'installmentCount' => 'nullable|integer|min:1|max:120|required_with:totalPrice,dueDayOfMonth',
+                'dueDayOfMonth' => 'nullable|integer|min:1|max:28|required_with:totalPrice,installmentCount',
                 'cancelReason' => 'nullable|string|min:5|max:2000',
             ]);
 
@@ -564,13 +687,22 @@ class ProjectDetail extends Component
                 return;
             }
 
-            $this->project->update([
+            $updateData = [
                 'name' => $this->name,
                 'description' => $this->description,
                 'status' => $this->status,
                 'cancel_reason' => $this->status === 'cancelled' ? $this->cancelReason : null,
                 'cancelled_at' => $this->status === 'cancelled' ? now() : null,
-            ]);
+            ];
+
+            // Keep legacy projects editable even when pricing hasn't been set yet.
+            if ($this->totalPrice !== null && $this->totalPrice !== '') {
+                $updateData['total_price'] = (float) $this->totalPrice;
+                $updateData['installment_count'] = (int) $this->installmentCount;
+                $updateData['due_day_of_month'] = (int) $this->dueDayOfMonth;
+            }
+
+            $this->project->update($updateData);
 
             if ($oldStatus !== $this->status) {
                 $this->sendStatusUpdateEmails($oldStatus, $this->status);
@@ -767,22 +899,45 @@ class ProjectDetail extends Component
 
     public function deleteProject()
     {
-        try {
-            // Check authorization - only admin or creator can delete
-            $user = Auth::user();
-            if ($user->role !== 'admin' && $this->project->created_by !== $user->id) {
-                $this->dispatch('notify', message: 'Only admin or project creator can delete this project.', type: 'warning');
-                $this->confirmingDeleteId = null;
-                return;
-            }
+        // Re-fetch from DB directly to avoid Livewire hydration issues with untyped model property
+        $project = Project::find($this->projectId);
 
-            $this->project->delete();
-            $this->dispatch('notify', message: 'Project deleted successfully!', type: 'success');
-            return redirect()->route('dashboard.projects');
-        } catch (\Exception $e) {
-            $this->dispatch('notify', message: 'Failed to delete project. ' . $e->getMessage(), type: 'error');
+        if (!$project) {
+            $this->dispatch('notify', message: 'Project not found.', type: 'error');
             $this->confirmingDeleteId = null;
+            return;
         }
+
+        $user = Auth::user();
+        $canDelete = $user->role === 'admin'
+            || $project->created_by === $user->id
+            || $project->freelance_id === $user->id;
+
+        if (!$canDelete) {
+            $this->dispatch('notify', message: 'Only admin or project owner can delete this project.', type: 'warning');
+            $this->confirmingDeleteId = null;
+            return;
+        }
+
+        try {
+            $project->delete();
+        } catch (\Exception $e) {
+            \Log::error('Project deletion failed', [
+                'project_id' => $this->projectId,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            $this->dispatch('notify', message: 'Failed to delete project: ' . $e->getMessage(), type: 'error');
+            $this->confirmingDeleteId = null;
+            return;
+        }
+
+        session()->flash('notify_message', 'Project deleted successfully!');
+        session()->flash('notify_type', 'success');
+        $this->confirmingDeleteId = null;
+
+        // Use a regular HTTP redirect for reliability after destructive actions.
+        return redirect()->route('dashboard.projects');
     }
 
     public function addNewTask()
@@ -1235,6 +1390,50 @@ class ProjectDetail extends Component
             ->where('status', 'pending')
             ->values();
 
+        $customerPayments = $projectPayments
+            ->where('submitted_as', 'customer')
+            ->values();
+
+        $installmentSchedule = $this->buildInstallmentSchedule($customerPayments);
+
+        $approvedCustomerPayments = $customerPayments->where('status', 'approved');
+        $approvedRoundsCount = $approvedCustomerPayments
+            ->pluck('installment_round')
+            ->filter()
+            ->unique()
+            ->count();
+        if ($approvedRoundsCount === 0 && $installmentSchedule->isNotEmpty()) {
+            $approvedRoundsCount = min($approvedCustomerPayments->count(), $installmentSchedule->count());
+        }
+
+        $plannedRounds = (int) ($this->project->installment_count ?: 1);
+        $dueNowRounds = $installmentSchedule->where('is_due', true)->count();
+        $remainingRounds = max($plannedRounds - $approvedRoundsCount, 0);
+        $shouldPayNowRounds = max(min($dueNowRounds, $plannedRounds) - $approvedRoundsCount, 0);
+
+        $approvedPaidAmount = (float) $approvedCustomerPayments->sum(function ($payment) {
+            return (float) ($payment->reviewed_amount ?? $payment->amount ?? 0);
+        });
+        $remainingAmount = $this->project->total_price !== null
+            ? max((float) $this->project->total_price - $approvedPaidAmount, 0)
+            : 0;
+
+        $pricingProgress = [
+            'planned_rounds' => $plannedRounds,
+            'paid_rounds' => $approvedRoundsCount,
+            'remaining_rounds' => $remainingRounds,
+            'due_now_rounds' => min($dueNowRounds, $plannedRounds),
+            'should_pay_now_rounds' => $shouldPayNowRounds,
+            'paid_percent' => $plannedRounds > 0 ? (int) round(($approvedRoundsCount / $plannedRounds) * 100) : 0,
+            'approved_paid_amount' => $approvedPaidAmount,
+            'remaining_amount' => $remainingAmount,
+        ];
+
+        $nextInstallmentForCustomer = null;
+        if ($user->role === 'customer' && $this->project->total_price !== null) {
+            $nextInstallmentForCustomer = $this->getCustomerNextInstallmentToPay($customerPayments, $installmentSchedule);
+        }
+
         $chatCounterpartId = $this->getChatCounterpartId();
         $chatMessages = collect();
 
@@ -1265,6 +1464,9 @@ class ProjectDetail extends Component
             'pendingCustomerPayments' => $pendingCustomerPayments,
             'freelancePaymentStats' => $freelancePaymentStats,
             'canReviewCustomerPayment' => $this->canReviewCustomerPayment(),
+            'installmentSchedule' => $installmentSchedule,
+            'pricingProgress' => $pricingProgress,
+            'nextInstallmentForCustomer' => $nextInstallmentForCustomer,
             'chatMessages' => $chatMessages,
             'chatCounterpartId' => $chatCounterpartId,
         ]);

@@ -14,16 +14,54 @@ class Project extends Model
         'description',
         'created_by',
         'freelance_id',
+        'total_price',
+        'installment_count',
+        'due_day_of_month',
         'status',
         'cancel_reason',
         'cancelled_at',
     ];
 
     protected $casts = [
+        'total_price' => 'decimal:2',
+        'installment_count' => 'integer',
+        'due_day_of_month' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'cancelled_at' => 'datetime',
     ];
+
+    protected function getInstallmentBreakdownSatang(): ?array
+    {
+        if ($this->total_price === null || (int) $this->installment_count <= 0) {
+            return null;
+        }
+
+        $totalSatang = (int) round((float) $this->total_price * 100);
+        $count = max((int) $this->installment_count, 1);
+        $baseSatang = intdiv($totalSatang, $count);
+        $lastSatang = $totalSatang - ($baseSatang * ($count - 1));
+
+        return [
+            'count' => $count,
+            'base_satang' => $baseSatang,
+            'last_satang' => $lastSatang,
+        ];
+    }
+
+    public function getInstallmentBaseAmountAttribute(): ?float
+    {
+        $breakdown = $this->getInstallmentBreakdownSatang();
+
+        return $breakdown ? $breakdown['base_satang'] / 100 : null;
+    }
+
+    public function getInstallmentLastAmountAttribute(): ?float
+    {
+        $breakdown = $this->getInstallmentBreakdownSatang();
+
+        return $breakdown ? $breakdown['last_satang'] / 100 : null;
+    }
 
     public function creator()
     {

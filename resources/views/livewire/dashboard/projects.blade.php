@@ -364,6 +364,42 @@
                             @error('status') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">มูลค่าโปรเจค (บาท)</label>
+                                <input type="number" step="0.01" min="0.01" wire:model.defer="totalPrice" placeholder="เช่น 600" class="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-500 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+                                @error('totalPrice') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">จำนวนงวด</label>
+                                <input type="number" min="1" max="120" wire:model.defer="installmentCount" class="w-full bg-white border border-gray-300 text-gray-900 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+                                @error('installmentCount') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">ครบกำหนดทุกวันที่</label>
+                                <input type="number" min="1" max="28" wire:model.defer="dueDayOfMonth" class="w-full bg-white border border-gray-300 text-gray-900 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+                                @error('dueDayOfMonth') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
+                        @if($totalPrice !== null && $totalPrice !== '' && $installmentCount)
+                            @php
+                                $previewRounds = max((int) $installmentCount, 1);
+                                $previewTotalSatang = (int) round((float) $totalPrice * 100);
+                                $previewBaseSatang = intdiv($previewTotalSatang, $previewRounds);
+                                $previewLastSatang = $previewTotalSatang - ($previewBaseSatang * ($previewRounds - 1));
+                            @endphp
+                            <div class="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3">
+                                <p class="text-sm font-semibold text-blue-900">ครบกำหนดทุกวันที่ {{ max((int) ($dueDayOfMonth ?: 20), 1) }} ของเดือน</p>
+                                @if($previewRounds > 1)
+                                    <p class="text-sm font-semibold text-blue-900 mt-1">งวด 1-{{ $previewRounds - 1 }}: ฿{{ number_format($previewBaseSatang / 100, 2) }}/งวด</p>
+                                    <p class="text-sm font-semibold text-indigo-900 mt-1">งวดสุดท้าย: ฿{{ number_format($previewLastSatang / 100, 2) }}</p>
+                                @else
+                                    <p class="text-sm font-semibold text-blue-900 mt-1">ชำระงวดเดียว: ฿{{ number_format($previewLastSatang / 100, 2) }}</p>
+                                @endif
+                            </div>
+                        @endif
+
                         <!-- Customers -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-900 mb-2">Customers (Optional)</label>

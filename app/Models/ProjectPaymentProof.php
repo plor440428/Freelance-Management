@@ -14,6 +14,7 @@ class ProjectPaymentProof extends Model
         'project_id',
         'user_id',
         'submitted_as',
+        'installment_round',
         'amount',
         'transfer_at',
         'slip_file',
@@ -26,6 +27,7 @@ class ProjectPaymentProof extends Model
     ];
 
     protected $casts = [
+        'installment_round' => 'integer',
         'amount' => 'decimal:2',
         'transfer_at' => 'datetime',
         'reviewed_amount' => 'decimal:2',
