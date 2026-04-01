@@ -5,7 +5,9 @@ namespace App\Http\Livewire\Dashboard;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use App\Models\File;
+use Illuminate\Validation\Rule;
 
 class EditProfile extends Component
 {
@@ -17,6 +19,7 @@ class EditProfile extends Component
     public $password_confirmation;
     public $profile_image;
     public $showModal = false;
+    public $saveSuccessMessage = '';
 
     protected $listeners = ['openEditProfileModal' => 'open'];
 
@@ -38,15 +41,35 @@ class EditProfile extends Component
 
     public function open()
     {
+        $user = auth()->user();
+        $this->name = $user->name;
+        $this->email = $user->email;
+        $this->saveSuccessMessage = '';
         $this->showModal = true;
     }
 
     public function updateProfile()
     {
         try {
-            $this->validate();
-
+            $this->saveSuccessMessage = '';
             $user = auth()->user();
+
+            $rules = [
+                'name' => 'required|string|min:3',
+                'password' => 'nullable|string|min:6|confirmed',
+                'profile_image' => 'nullable|image|max:2048',
+            ];
+
+            // If email is unchanged, skip unique check so existing duplicate test data
+            // does not block profile updates.
+            if ($this->email === $user->email) {
+                $rules['email'] = 'required|email';
+            } else {
+                $rules['email'] = ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)];
+            }
+
+            $this->validate($rules);
+
             $user->name = $this->name;
             $user->email = $this->email;
 
@@ -55,6 +78,10 @@ class EditProfile extends Component
             }
 
             if ($this->profile_image) {
+                if ($user->profile_image_path && Storage::disk('public')->exists($user->profile_image_path)) {
+                    Storage::disk('public')->delete($user->profile_image_path);
+                }
+
                 $filename = 'profile_' . $user->id . '_' . time() . '.' . $this->profile_image->extension();
                 $path = $this->profile_image->storeAs('profiles', $filename, 'public');
 
@@ -71,14 +98,14 @@ class EditProfile extends Component
                 $user->profile_image_path = $path;
             }
 
-            $user->save();
+            $user->saveOrFail();
 
             // Refresh the user in auth cache
-            auth()->setUser($user);
+            auth()->setUser($user->fresh());
 
+            $this->saveSuccessMessage = 'Profile updated successfully!';
             $this->dispatch('notify', message: 'Profile updated successfully!', type: 'success');
             $this->resetForm();
-            $this->showModal = false;
             $this->dispatch('profileUpdated');
         } catch (\Exception $e) {
             $this->dispatch('notify', message: 'Failed to update profile. ' . $e->getMessage(), type: 'error');

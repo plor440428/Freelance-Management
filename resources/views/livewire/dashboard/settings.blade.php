@@ -1,4 +1,4 @@
-<div x-data="{ activeTab: 'profile' }" class="settings-shell relative overflow-hidden">
+<div x-data="{ activeTab: 'password' }" class="settings-shell relative overflow-hidden">
     <div class="settings-orb settings-orb--1"></div>
     <div class="settings-orb settings-orb--2"></div>
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative">
@@ -15,17 +15,6 @@
         <!-- Tabs Navigation -->
         <div class="panel mb-8 overflow-hidden fade-up delay-1">
             <div class="flex overflow-x-auto border-b border-slate-200">
-                <button @click="activeTab = 'profile'" 
-                        :class="activeTab === 'profile' ? 'tab-btn-active' : 'tab-btn-inactive'"
-                        class="tab-btn">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                        <span>Profile</span>
-                    </div>
-                </button>
-
                 <button @click="activeTab = 'password'" 
                         :class="activeTab === 'password' ? 'tab-btn-active' : 'tab-btn-inactive'"
                         class="tab-btn">
@@ -79,117 +68,6 @@
 
         <!-- Tab Content -->
         <div class="space-y-6">
-            <!-- Profile Tab -->
-            <div x-show="activeTab === 'profile'" x-cloak>
-                <div class="panel p-7 fade-up delay-2">
-                    <h3 class="section-title text-2xl text-slate-900 mb-7 flex items-center">
-                        <div class="w-1 h-8 bg-gradient-to-b from-blue-600 to-sky-400 rounded-full mr-3"></div>
-                        Profile Information
-                    </h3>
-                    
-                    <form wire:submit.prevent="updateProfile">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                            <!-- Profile Image Column -->
-                            <div class="md:col-span-1 flex flex-col items-center md:items-start">
-                                <label class="block text-xs font-bold text-gray-700 mb-4 uppercase tracking-widest">Profile Picture</label>
-                                <div class="flex flex-col items-center w-full">
-                                    @if ($previewUrl)
-                                        <img src="{{ $previewUrl }}" alt="Profile" class="w-40 h-40 rounded-xl object-cover border-4 border-blue-100 shadow-md mb-4" />
-                                    @else
-                                        <div class="w-40 h-40 rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 flex items-center justify-center text-white text-5xl font-black shadow-md mb-4">
-                                            {{ substr(auth()->user()->name, 0, 1) }}
-                                        </div>
-                                    @endif
-                                    
-                                    <div class="w-full">
-                                        <input type="file" wire:model.live="profileImage" accept="image/*" 
-                                               class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 transition" />
-                                        @error('profileImage')
-                                            <p class="text-red-600 text-xs font-medium mt-2">{{ $message }}</p>
-                                        @enderror
-                                        <div wire:loading wire:target="profileImage" class="text-xs text-blue-700 font-medium mt-2 flex items-center gap-2">
-                                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                            Uploading image...
-                                        </div>
-                                        <p class="text-xs text-slate-500 font-medium mt-2">JPG, PNG or GIF (MAX. 2MB)</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Form Fields Column -->
-                            <div class="md:col-span-1 space-y-5">
-                                <!-- Name -->
-                                <div>
-                                     <label class="block text-xs font-bold text-slate-700 mb-2.5 uppercase tracking-widest">Full Name</label>
-                                    <input type="text" wire:model="name" 
-                                         class="w-full px-4 py-3 border border-slate-200 rounded-lg text-sm font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" 
-                                           placeholder="Enter your full name" />
-                                    @error('name')
-                                        <p class="text-red-600 text-xs font-semibold mt-1.5">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <!-- Email (Read-only) -->
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-2.5 uppercase tracking-widest">Email Address</label>
-                                    <div class="relative">
-                                        <input type="email" value="{{ $email }}" disabled 
-                                               class="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed text-sm font-medium" />
-                                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <p class="text-xs text-slate-500 mt-2 flex items-center gap-1.5 font-medium">
-                                        <svg class="w-4 h-4 flex-shrink-0 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                                        </svg>
-                                        Email cannot be changed for security reasons
-                                    </p>
-                                </div>
-
-                                <!-- Role Badge -->
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-2.5 uppercase tracking-widest">Account Type</label>
-                                    <div class="w-full p-3.5 bg-gradient-to-r from-blue-50 to-white border border-blue-200 rounded-lg flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-bold text-slate-600 uppercase tracking-widest">Current Role</p>
-                                            <p class="font-black text-lg text-slate-900 capitalize">{{ auth()->user()->role }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Save Button -->
-                                <div class="md:col-span-2 pt-4 border-t border-slate-200 mt-6">
-                                    <button type="submit" 
-                                            wire:loading.attr="disabled"
-                                            wire:target="updateProfile, profileImage"
-                                            class="btn-primary">
-                                        <span wire:loading.remove wire:target="updateProfile, profileImage">Save Changes</span>
-                                        <span wire:loading wire:target="updateProfile, profileImage" class="flex items-center gap-2">
-                                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                            Saving...
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
             <!-- Password Tab -->
             <div x-show="activeTab === 'password'" x-cloak>
                 <div class="panel p-7 fade-up delay-2">

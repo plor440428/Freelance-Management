@@ -29,9 +29,16 @@
                                     <button type="button" onclick="document.getElementById('profile_image').click()" class="flex-1 px-4 py-2.5 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50">Choose file</button>
                                 </div>
                                 <p class="text-xs text-slate-500 mt-2">PNG, JPG up to 2MB.</p>
+                                <div wire:loading wire:target="profile_image" class="mt-2 text-xs font-semibold text-blue-700">Uploading image...</div>
                                 @error('profile_image') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
                         </div>
+
+                        @if ($saveSuccessMessage)
+                            <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                                {{ $saveSuccessMessage }}
+                            </div>
+                        @endif
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -63,7 +70,19 @@
                         </div>
 
                         <div class="flex flex-col sm:flex-row items-center gap-3">
-                            <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 shadow-sm w-full sm:w-auto">Save changes</button>
+                            <button type="submit"
+                                    wire:loading.attr="disabled"
+                                    wire:target="updateProfile,profile_image"
+                                    class="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 shadow-sm w-full sm:w-auto disabled:opacity-60 disabled:cursor-not-allowed">
+                                <span wire:loading.remove wire:target="updateProfile">Save changes</span>
+                                <span wire:loading wire:target="updateProfile" class="inline-flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                    </svg>
+                                    Saving...
+                                </span>
+                            </button>
                             <button type="button" wire:click="$set('showModal', false)" class="px-5 py-2.5 border border-slate-200 rounded-lg font-semibold text-slate-600 hover:bg-slate-50 w-full sm:w-auto">Cancel</button>
                         </div>
                     </form>
