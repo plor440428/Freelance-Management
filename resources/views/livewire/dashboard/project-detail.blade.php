@@ -501,24 +501,29 @@
                             <button type="button" wire:click="searchFreelance" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Search</button>
                         </div>
                         <div class="space-y-1 border border-gray-200 rounded-lg p-3 max-h-52 overflow-y-auto bg-white">
-                            <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-2 py-2 rounded-lg transition">
-                                <input type="radio" name="selected_freelance" wire:model.defer="selectedFreelance" value="" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                                <div class="flex-1">
-                                    <p class="text-sm font-semibold text-gray-900">No Freelance</p>
-                                </div>
-                            </label>
-                            @forelse($freelances as $freelance)
+                            @php($hasFreelanceSearch = trim((string) $freelanceSearchQuery) !== '')
+                            @if(!$hasFreelanceSearch)
+                                <p class="text-sm text-gray-500 text-center py-5">พิมพ์ค้นหา Freelance ก่อน</p>
+                            @else
                                 <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-2 py-2 rounded-lg transition">
-                                    <input type="radio" name="selected_freelance" wire:model.defer="selectedFreelance" value="{{ $freelance->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                                    <img src="{{ $freelance->profile_image_url }}" alt="{{ $freelance->name }}" class="w-7 h-7 rounded-full flex-shrink-0" />
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-semibold text-gray-900 truncate">{{ $freelance->name }}</p>
-                                        <p class="text-xs text-gray-600 truncate">{{ $freelance->email }}</p>
+                                    <input type="radio" name="selected_freelance" wire:model.defer="selectedFreelance" value="" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold text-gray-900">No Freelance</p>
                                     </div>
                                 </label>
-                            @empty
-                                <p class="text-sm text-gray-500 text-center py-5">No freelances found</p>
-                            @endforelse
+                                @forelse($freelances as $freelance)
+                                    <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-2 py-2 rounded-lg transition">
+                                        <input type="radio" name="selected_freelance" wire:model.defer="selectedFreelance" value="{{ $freelance->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                        <img src="{{ $freelance->profile_image_url }}" alt="{{ $freelance->name }}" class="w-7 h-7 rounded-full flex-shrink-0" />
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-semibold text-gray-900 truncate">{{ $freelance->name }}</p>
+                                            <p class="text-xs text-gray-600 truncate">{{ $freelance->email }}</p>
+                                        </div>
+                                    </label>
+                                @empty
+                                    <p class="text-sm text-gray-500 text-center py-5">No freelances found</p>
+                                @endforelse
+                            @endif
                         </div>
                         @error('selectedFreelance') <p class="text-xs text-red-600 font-medium">{{ $message }}</p> @enderror
                         <button type="button" wire:click="updateFreelance" wire:loading.attr="disabled" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50">
@@ -1160,25 +1165,30 @@
                                 <button type="button" wire:click="searchFreelance" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Search</button>
                             </div>
                             <div class="space-y-1 border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto bg-white">
-                                <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-3 py-2.5 rounded-lg transition">
-                                    <input type="radio" wire:model.defer="selectedFreelance" value="" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                                    <div class="flex-1">
-                                        <p class="text-sm font-semibold text-gray-900">No Freelance</p>
-                                        <p class="text-xs text-gray-600">Remove freelance assignment</p>
-                                    </div>
-                                </label>
-                                @forelse($freelances as $freelance)
+                                @php($hasFreelanceSearch = trim((string) $freelanceSearchQuery) !== '')
+                                @if(!$hasFreelanceSearch)
+                                    <p class="text-sm text-gray-500 text-center py-8">พิมพ์ค้นหา Freelance ก่อน</p>
+                                @else
                                     <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-3 py-2.5 rounded-lg transition">
-                                        <input type="radio" wire:model.defer="selectedFreelance" value="{{ $freelance->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                                        <img src="{{ $freelance->profile_image_url }}" alt="{{ $freelance->name }}" class="w-8 h-8 rounded-full flex-shrink-0" />
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-semibold text-gray-900">{{ $freelance->name }}</p>
-                                            <p class="text-xs text-gray-600 truncate">{{ $freelance->email }}</p>
+                                        <input type="radio" wire:model.defer="selectedFreelance" value="" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                        <div class="flex-1">
+                                            <p class="text-sm font-semibold text-gray-900">No Freelance</p>
+                                            <p class="text-xs text-gray-600">Remove freelance assignment</p>
                                         </div>
                                     </label>
-                                @empty
-                                    <p class="text-sm text-gray-500 text-center py-8">No freelances found</p>
-                                @endforelse
+                                    @forelse($freelances as $freelance)
+                                        <label class="flex items-center gap-3 cursor-pointer hover:bg-blue-50 px-3 py-2.5 rounded-lg transition">
+                                            <input type="radio" wire:model.defer="selectedFreelance" value="{{ $freelance->id }}" class="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                            <img src="{{ $freelance->profile_image_url }}" alt="{{ $freelance->name }}" class="w-8 h-8 rounded-full flex-shrink-0" />
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-semibold text-gray-900">{{ $freelance->name }}</p>
+                                                <p class="text-xs text-gray-600 truncate">{{ $freelance->email }}</p>
+                                            </div>
+                                        </label>
+                                    @empty
+                                        <p class="text-sm text-gray-500 text-center py-8">No freelances found</p>
+                                    @endforelse
+                                @endif
                             </div>
                             @error('selectedFreelance') <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
                         </div>

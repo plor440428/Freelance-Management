@@ -1348,6 +1348,7 @@ class ProjectDetail extends Component
         $user = Auth::user();
         $teamMemberSearchTerm = trim((string) $this->teamMemberSearchQuery);
         $customerSearchTerm = trim((string) $this->customerSearchQuery);
+        $freelanceSearchTerm = trim((string) $this->freelanceSearchQuery);
 
         // Get available team members with search query (exclude project owner/creator)
         $availableTeamMembers = collect();
@@ -1375,16 +1376,17 @@ class ProjectDetail extends Component
                 ->get();
         }
 
-        // Get freelances with search query
-        $freelances = User::where('role', 'freelance')
-            ->where('is_approved', true)
-            ->when($this->freelanceSearchQuery, function($q) {
-                $q->where(function($query) {
-                    $query->where('email', 'like', '%' . $this->freelanceSearchQuery . '%')
-                          ->orWhere('name', 'like', '%' . $this->freelanceSearchQuery . '%');
-                });
-            })
-            ->get();
+        // Only show freelance options after the user enters a search term.
+        $freelances = collect();
+        if ($freelanceSearchTerm !== '') {
+            $freelances = User::where('role', 'freelance')
+                ->where('is_approved', true)
+                ->where(function ($query) use ($freelanceSearchTerm) {
+                    $query->where('email', 'like', '%' . $freelanceSearchTerm . '%')
+                        ->orWhere('name', 'like', '%' . $freelanceSearchTerm . '%');
+                })
+                ->get();
+        }
 
         // Get task assignees from project managers only
         $taskAssignees = $this->project->managers;
