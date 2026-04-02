@@ -712,10 +712,9 @@
 
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest">Amount</label>
+                                <input type="number" step="0.01" min="0.01" wire:model.defer="projectPaymentAmount" class="w-full border border-gray-200 px-3 py-2 rounded-lg text-sm" placeholder="0.00" />
                                 @if($project->total_price !== null && is_array($nextInstallmentForCustomer) && !isset($nextInstallmentForCustomer['error']))
-                                    <input type="text" value="฿{{ number_format((float) $nextInstallmentForCustomer['amount'], 2) }} (งวด {{ $nextInstallmentForCustomer['round'] }})" class="w-full border border-emerald-200 bg-emerald-50 px-3 py-2 rounded-lg text-sm font-semibold text-emerald-800" readonly />
-                                @else
-                                    <input type="number" step="0.01" min="0.01" wire:model.defer="projectPaymentAmount" class="w-full border border-gray-200 px-3 py-2 rounded-lg text-sm" placeholder="0.00" />
+                                    <p class="text-[11px] text-gray-500 mt-1">แนะนำงวด {{ $nextInstallmentForCustomer['round'] }} ยอด ฿{{ number_format((float) $nextInstallmentForCustomer['amount'], 2) }} (ลูกค้าสามารถกรอกยอดเองได้)</p>
                                 @endif
                                 @error('projectPaymentAmount') <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p> @enderror
                             </div>
@@ -732,7 +731,7 @@
                                 @error('projectPaymentNote') <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p> @enderror
                             </div>
 
-                            <button type="submit" wire:loading.attr="disabled" @disabled($project->total_price !== null && is_array($nextInstallmentForCustomer) && isset($nextInstallmentForCustomer['error'])) class="w-full px-4 py-2.5 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 disabled:opacity-50 transition">
+                            <button type="submit" wire:loading.attr="disabled" class="w-full px-4 py-2.5 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 disabled:opacity-50 transition">
                                 <span wire:loading.remove wire:target="submitProjectPayment">ส่งสลิปชำระเงิน</span>
                                 <span wire:loading wire:target="submitProjectPayment">กำลังส่ง...</span>
                             </button>

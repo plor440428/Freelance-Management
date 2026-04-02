@@ -339,13 +339,10 @@ class ProjectDetail extends Component
                 continue;
             }
 
-            if ($row['due_date']->isFuture()) {
-                return ['error' => 'ยังไม่ถึงกำหนดการชำระงวดถัดไป'];
-            }
-
             return [
                 'round' => $round,
                 'amount' => (float) $row['amount'],
+                'due_date' => $row['due_date'],
             ];
         }
 
@@ -369,10 +366,14 @@ class ProjectDetail extends Component
 
             $this->validate([
                 'projectPaymentSlip' => 'required|file|mimes:jpeg,jpg,png,gif,pdf|max:5120',
+                'projectPaymentAmount' => 'required|numeric|min:0.01',
                 'projectPaymentTransferAt' => 'required|date',
                 'projectPaymentNote' => 'nullable|string|max:1000',
             ], [
                 'projectPaymentSlip.required' => 'Please select a payment slip file.',
+                'projectPaymentAmount.required' => 'Please enter the payment amount.',
+                'projectPaymentAmount.numeric' => 'Payment amount must be a valid number.',
+                'projectPaymentAmount.min' => 'Payment amount must be greater than 0.',
                 'projectPaymentTransferAt.required' => 'Please select the transfer date and time.',
                 'projectPaymentTransferAt.date' => 'Transfer date and time is invalid.',
             ]);
@@ -380,7 +381,7 @@ class ProjectDetail extends Component
             $user = Auth::user();
 
             $installmentRound = null;
-            $amount = $this->projectPaymentAmount;
+            $amount = (float) $this->projectPaymentAmount;
 
             if ($user->role === 'customer' && $this->project->total_price !== null) {
                 $customerPayments = $this->project->paymentProofs()
@@ -397,14 +398,6 @@ class ProjectDetail extends Component
                 }
 
                 $installmentRound = (int) $nextInstallment['round'];
-                $amount = (float) $nextInstallment['amount'];
-            } else {
-                $this->validate([
-                    'projectPaymentAmount' => 'required|numeric|min:0.01',
-                ], [
-                    'projectPaymentAmount.required' => 'Please enter the payment amount.',
-                    'projectPaymentAmount.min' => 'Payment amount must be greater than 0.',
-                ]);
             }
 
             \Log::info('Submitting project payment slip', [
